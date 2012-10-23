@@ -3,6 +3,7 @@
 class Go_Slog
 {
 	public static $log_on = TRUE;
+	public static $config = array();
 	public static $simple_db;
 	
 	/**
@@ -11,21 +12,14 @@ class Go_Slog
 	 * @param $aws_secret_key string The Amazon Web Services secret key
 	 * @param $aws_sdb_domain string The Amazon Web Services SimpleDB domain
 	 */
-	public function __construct()
+	public function __construct( $config = null )
 	{
 		if ( static::$log_on == FALSE )
 		{
 			return;
 		} // end if
 		
-		if( ! class_exists( 'Go_Simple_DB' ) )
-		{
-			if( is_admin() )
-			{
-				// @todo show a message in the admin UI saying this plugin failed to load.
-			} // end if
-			return;
-		} // end if
+		static::$config = $config;
 		
 		if ( is_admin() )
 		{
@@ -44,8 +38,7 @@ class Go_Slog
 	{		
 		if ( ! is_object( static::$simple_db ) )
 		{
-			go_config()->load();
-			static::$simple_db = Go_Simple_DB::get( static::$aws_sdb_domain, static::$aws_access_key, static::$aws_secret_key );
+			static::$simple_db = Go_Simple_DB::get( static::$config['aws_sdb_domain'], static::$config['aws_access_key'], static::$config['aws_secret_key'] );
 		} // end if
 		
 		return static::$simple_db;
