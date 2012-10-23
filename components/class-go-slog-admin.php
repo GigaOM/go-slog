@@ -24,7 +24,7 @@ class Go_Slog_Admin
 			return;
 		} // end if
 		
-		Go_Slog::simple_db()->deleteDomain( Go_Slog::$aws_sdb_domain );
+		Go_Slog::simple_db()->deleteDomain( Go_Slog::$config['aws_sdb_domain'] );
 		
 		die( '<p><strong>Log Cleared!</strong></p>' );
 	} // end function clear_log
@@ -54,25 +54,23 @@ class Go_Slog_Admin
 	 * Show the contents of the log
 	 */
 	public function show_log()
-	{				
+	{
 		if ( ! current_user_can( 'manage_options' ) )
 		{
 			return;
 		} // end if
 		
 		nocache_headers();
-		
-		Go_Slog::check_domain();
 				
 		$this->var_dump = ( $_GET['var_dump'] == 'yes' ) ? TRUE : FALSE; 
 		$next_token     = ( $_GET['next'] != '' ) ? base64_decode( $_GET['next'] ) : NULL;
 		
-		$log_query = Go_Slog::simple_db()->select( 'SELECT * FROM `' . Go_Slog::$aws_sdb_domain . '` WHERE log_date IS NOT NULL ORDER BY log_date DESC LIMIT ' . $this->limit, $next_token );
+		$log_query = Go_Slog::simple_db()->select( 'SELECT * FROM `' . Go_Slog::$config['aws_sdb_domain'] . '` WHERE log_date IS NOT NULL ORDER BY log_date DESC LIMIT ' . $this->limit, $next_token );
 
 		if ( $_GET['csv'] == 'yes' )
 		{
 			header( 'Content-Type: text/csv' );
-			header( 'Content-Disposition: attachment;filename=' . Go_Slog::$aws_sdb_domain . '.csv' );
+			header( 'Content-Disposition: attachment;filename=' . Go_Slog::$config['aws_sdb_domain'] . '.csv' );
 			$csv = fopen( 'php://output', 'w' );
 			
 			$columns = array(

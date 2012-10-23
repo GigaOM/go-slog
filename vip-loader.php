@@ -9,8 +9,6 @@
 
 require_once __DIR__ . '/components/class-go-slog.php';
 
-add_action( 'plugins_loaded', function() {
-	$config = go_config()->load('go-slog');
+$config = go_config()->load('go-slog');
 
-	new Go_Slog( $config );
-});
+new Go_Slog( $config );

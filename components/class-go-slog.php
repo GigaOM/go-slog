@@ -18,12 +18,12 @@ class Go_Slog
 		{
 			return;
 		} // end if
-		
+
 		static::$config = $config;
 		
 		if ( is_admin() )
 		{
-			require_once __DIR__ . '/go-slog-admin.php';
+			require_once __DIR__ . '/class-go-slog-admin.php';
 			new Go_Slog_Admin();
 		} // end if
 		
@@ -35,7 +35,7 @@ class Go_Slog
 	 * @return SimpleDB object
 	 */
 	public static function simple_db()
-	{		
+	{
 		if ( ! is_object( static::$simple_db ) )
 		{
 			static::$simple_db = Go_Simple_DB::get( static::$config['aws_sdb_domain'], static::$config['aws_access_key'], static::$config['aws_secret_key'] );
@@ -60,6 +60,6 @@ class Go_Slog
 		$log_item['message'] = array( 'value' => $message );
 		$log_item['data'] = array( 'value' => serialize( $data ) );
 		
-		static::simple_db()->putAttributes( static::$aws_sdb_domain, uniqid( 'log_item_' ), $log_item );
+		static::simple_db()->putAttributes( static::$config['aws_sdb_domain'], uniqid( 'log_item_' ), $log_item );
 	} // end function log
 } // end class
