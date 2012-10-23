@@ -15,6 +15,42 @@ class Go_Slog_Admin
 	} // end function __construct
 	
 	/**
+	 * Delete all entries in the log
+	 */
+	public function clear_log()
+	{
+		if ( ! current_user_can( 'manage_options' ) )
+		{
+			return;
+		} // end if
+		
+		Go_Slog::simple_db()->deleteDomain( Go_Slog::$aws_sdb_domain );
+		
+		die( '<p><strong>Log Cleared!</strong></p>' );
+	} // end function clear_log
+	
+	/**
+	 * Formats data for output
+	 * @param $data array
+	 * @return string formatted data
+	 */
+	public function format_data( $data )
+	{
+		if ( $this->var_dump == FALSE )
+		{
+			$data = print_r( unserialize( $data ), TRUE );
+		} // end if
+		else 
+		{
+			ob_start(); 
+			var_dump( unserialize( $data ) );
+			$data = ob_get_clean();
+		} // end else
+		
+		return $data;
+	} // end function format_data
+	
+	/**
 	 * Show the contents of the log
 	 */
 	public function show_log()
@@ -127,41 +163,5 @@ class Go_Slog_Admin
 		
 		die();
 	} // end function show_log
-	
-	/**
-	 * Formats data for output
-	 * @param $data array
-	 * @return string formatted data
-	 */
-	public function format_data( $data )
-	{
-		if ( $this->var_dump == FALSE )
-		{
-			$data = print_r( unserialize( $data ), TRUE );
-		} // end if
-		else 
-		{
-			ob_start(); 
-			var_dump( unserialize( $data ) );
-			$data = ob_get_clean();
-		} // end else
-		
-		return $data;
-	} // end function format_data
-	
-	/**
-	 * Delete all entries in the log
-	 */
-	public function clear_log()
-	{
-		if ( ! current_user_can( 'manage_options' ) )
-		{
-			return;
-		} // end if
-		
-		Go_Slog::simple_db()->deleteDomain( Go_Slog::$aws_sdb_domain );
-		
-		die( '<p><strong>Log Cleared!</strong></p>' );
-	} // end function clear_log
 	
 } // end class Go_Slog_Admin

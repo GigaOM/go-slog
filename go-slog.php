@@ -7,9 +7,8 @@
  * Author URI: 	http://gigaom.com/
  */
 
-if ( $config = Go_Wp_Config::load('go-slog') )
-{
-	require_once __DIR__ . '/components/class-go-slog.php';
+require_once __DIR__ . '/components/class-go-slog.php';
 
-	new Go_Slog( $config['aws_access_key'], $config['aws_secret_key'], $config['aws_sdb_domain'] );
-} // end if
+add_action( 'plugins_loaded', function() {
+	new Go_Slog();
+});
