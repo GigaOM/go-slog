@@ -14,8 +14,8 @@
 function go_slog_and_error( $code = '', $message = '', $data = '' )
 {
 	Go_Slog::log( $code, $message, $data );
-	return new WP_Error( $code , $message, $data );
-} // end function go_slog_and_error
+	return new WP_Error( $code, $message, $data );
+} // end go_slog_and_error
 
 /**
  * Log and stop execution
@@ -23,13 +23,13 @@ function go_slog_and_error( $code = '', $message = '', $data = '' )
  * @param $message string The message you want to log
  * @param $data string The data you want logged
  */
-function go_slog_and_die( $code = '', $message = '', $data = '', $http_code )
+function go_slog_and_die( $code = '', $message = '', $data = '', $http_code = '' )
 {
 	Go_Slog::log( $code, $message, $data );
-	new WP_Error( $code , $message , $data );
+	new WP_Error( $code, $message, $data );
 	header( $_SERVER[ 'SERVER_PROTOCOL' ] . ' ' . $http_code . ' ' . $message, TRUE, $http_code );
 	die;
-} // end function go_slog_and_die
+} // end go_slog_and_die
 
 /**
  * Log and return an error
@@ -40,4 +40,4 @@ function go_slog_and_die( $code = '', $message = '', $data = '', $http_code )
 function go_slog( $code = '', $message = '', $data = '' )
 {
 	Go_Slog::log($code, $message, $data);
-} // end function go_slog
+} // end go_slog
