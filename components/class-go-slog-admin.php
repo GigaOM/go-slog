@@ -155,8 +155,8 @@ class Go_Slog_Admin
 
 		if ( Go_Slog::simple_db()->NextToken != '' )
 		{
-			$var_dump = ($this->var_dump) ? '&var_dump=yes' : '';
-			echo '<p><a href="admin-ajax.php?action=go-slog-show&next=' . base64_encode( Go_Slog::simple_db()->NextToken ) . $var_dump . '" title="Next Page">Next Page</a></p>';
+			$var_dump = ($this->var_dump) ? '&amp;var_dump=yes' : '';
+			echo '<p><a href="admin-ajax.php?action=go-slog-show&amp;next=' . base64_encode( Go_Slog::simple_db()->NextToken ) . $var_dump . '" title="Next Page">Next Page</a></p>';
 		} // end if
 
 		die();
