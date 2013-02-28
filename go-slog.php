@@ -8,7 +8,4 @@
  */
 
 require_once __DIR__ . '/components/class-go-slog.php';
-
-add_action( 'plugins_loaded', function() {
-	new Go_Slog();
-});
+go_slog();

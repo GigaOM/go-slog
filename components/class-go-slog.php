@@ -1,15 +1,12 @@
 <?php
 
-class Go_Slog
+class GO_Slog
 {
 	public static $log_on = TRUE;
 	public static $config = array();
 
 	/**
 	 * constructor to setup the simple log
-	 * @param $aws_access_key string The Amazon Web Services access key
-	 * @param $aws_secret_key string The Amazon Web Services secret key
-	 * @param $aws_sdb_domain string The Amazon Web Services SimpleDB domain
 	 */
 	public function __construct( $config = null )
 	{
@@ -17,8 +14,6 @@ class Go_Slog
 		{
 			return;
 		} // end if
-
-		static::$config = $config;
 
 		if ( is_admin() )
 		{
@@ -28,6 +23,19 @@ class Go_Slog
 
 		add_filter( 'go_slog', 'Go_Slog::log', 10, 3 );
 	} // end __construct
+	
+	/*
+	 * Setup the simple log with connectivity to AWS
+	 *
+	 * @param array $config should contain the following keys:
+	 *     aws_access_key string The Amazon Web Services access key
+	 *     aws_secret_key string The Amazon Web Services secret key
+	 *     aws_sdb_domain string The Amazon Web Services SimpleDB domain
+	 */
+	public function config( $config )
+	{
+		static::$config = $config;		
+	}// end config
 
 	/**
 	 * log to SimpleDB
@@ -57,3 +65,16 @@ class Go_Slog
 		return GO_Simple_DB::get( static::$config['aws_sdb_domain'], static::$config['aws_access_key'], static::$config['aws_secret_key'] );
 	} // end simple_db
 }// end class
+
+
+function go_slog()
+{
+	global $go_slog;
+	
+	if ( ! isset( $go_slog ) )
+	{
+		$go_slog = new GO_Slog();
+	}// end if
+
+	return $go_slog;
+}// end go_slog
