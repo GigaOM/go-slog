@@ -22,8 +22,10 @@ class GO_Slog
 		} // end if
 
 		add_filter( 'go_slog', 'Go_Slog::log', 10, 3 );
+
+		$this->config( apply_filters( 'go_config', false, 'go-slog' ) );
 	} // end __construct
-	
+
 	/*
 	 * Setup the simple log with connectivity to AWS
 	 *
@@ -34,7 +36,7 @@ class GO_Slog
 	 */
 	public function config( $config )
 	{
-		static::$config = $config;		
+		static::$config = $config;
 	}// end config
 
 	/**
@@ -70,7 +72,7 @@ class GO_Slog
 function go_slog()
 {
 	global $go_slog;
-	
+
 	if ( ! isset( $go_slog ) )
 	{
 		$go_slog = new GO_Slog();
