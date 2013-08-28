@@ -1,9 +1,8 @@
 <?php
-
 /**
- * Plugin name: GO Simple DB Log
+ * Plugin name: Gigaom Simple DB Log
  * Description:	A way to log occurances to an Amazon Simple DB
- * Author: 		GigaOM 
+ * Author: 		Gigaom
  * Author URI: 	http://gigaom.com/
  */
 
