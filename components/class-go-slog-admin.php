@@ -160,7 +160,7 @@ class GO_Slog_Admin
 				date( 'Y-m-d H:i:s', $microtime[0] ) . '.' . $microtime[1],
 				$row['host'],
 				$row['code'],
-			    $row['message'],
+				$row['message'],
 				$this->format_data( $row['data'] ),
 			);
 
