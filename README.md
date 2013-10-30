@@ -22,7 +22,7 @@ Here's our short list (you may be able to think of more):
 1. When you need to log errors but don't have admin access to the error logs on the server.
 2. When you need a cosolidated log between two different servers that are running related code.
 	* In our case we had two servers talking to each other and needed a view into how that conversation was going in a consolidated fashion.
-3. When you have a rare error that you need log it but don't want to dig through months of error log files.
+3. When you have a rare error that you need to log it but don't want to dig through months of error log files.
 
 Usage Notes
 -----------
