@@ -8,7 +8,7 @@ class GO_Slog
 	/**
 	 * constructor to setup the simple log
 	 */
-	public function __construct( $config = null )
+	public function __construct( $config = NULL )
 	{
 		if ( static::$log_on == FALSE )
 		{
@@ -18,12 +18,12 @@ class GO_Slog
 		if ( is_admin() )
 		{
 			include_once __DIR__ . '/class-go-slog-admin.php';
-			new Go_Slog_Admin();
+			go_slog_admin();
 		} // end if
 
 		add_filter( 'go_slog', 'Go_Slog::log', 10, 3 );
 
-		$this->config( apply_filters( 'go_config', false, 'go-slog' ) );
+		$this->config( apply_filters( 'go_config', FALSE, 'go-slog' ) );
 	} // end __construct
 
 	/*
@@ -50,10 +50,10 @@ class GO_Slog
 		$microtime = explode( ' ', microtime() );
 
 		$log_item['log_date'] = array( 'value' => $microtime[1] . substr( $microtime[0], 1 ) );
-		$log_item['host'] = array( 'value' => parse_url( site_url('/'), PHP_URL_HOST ) );
-		$log_item['code'] = array( 'value' => $code );
-		$log_item['message'] = array( 'value' => $message );
-		$log_item['data'] = array( 'value' => serialize( $data ) );
+		$log_item['host']     = array( 'value' => parse_url( site_url('/'), PHP_URL_HOST ) );
+		$log_item['code']     = array( 'value' => $code );
+		$log_item['message']  = array( 'value' => $message );
+		$log_item['data']     = array( 'value' => serialize( $data ) );
 
 		static::simple_db()->putAttributes( static::$config['aws_sdb_domain'], uniqid( 'log_item_' ), $log_item );
 	} // end log

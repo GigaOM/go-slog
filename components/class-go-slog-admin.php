@@ -1,32 +1,56 @@
 <?php
 
-class Go_Slog_Admin
+class GO_Slog_Admin
 {
 	public $var_dump = FALSE;
-	public $limit    = 1000;
+	public $limit    = 100;
+	public $limits   = array(
+		'100'  => '100',
+		'250'  => '250',
+		'500'  => '500',
+		'1000' => '1000',
+	);
+	public $current_slog_vars;
 
 	/**
 	 * Constructor to establish a couple ajax endpoints
 	 */
 	public function __construct()
 	{
-		add_action( 'wp_ajax_go-slog-show', array( $this, 'show_log' ) );
+		add_action( 'admin_init', array( $this, 'admin_init' ) );
+		add_action( 'admin_menu', array( $this, 'admin_menu' ) );
 		add_action( 'wp_ajax_go-slog-clear', array( $this, 'clear_log' ) );
+		add_action( 'wp_ajax_go-slog-csv', array( $this, 'export_csv' ) );
 	} // end __construct
+
+	public function admin_init()
+	{
+		wp_enqueue_style( 'go-slog', plugins_url( 'css/go-slog.css', __FILE__ ) );
+		wp_enqueue_script( 'go-slog', plugins_url( 'js/go-slog.js', __FILE__ ), array( 'jquery' ) );
+	} // END admin_init
+
+	public function admin_menu()
+	{
+		add_submenu_page( 'tools.php', 'View Slog', 'View Slog', 'manage_options', 'go-slog-show', array( $this, 'show_log') );
+	} // END admin_menu
 
 	/**
 	 * Delete all entries in the log
 	 */
 	public function clear_log()
 	{
-		if ( ! current_user_can( 'manage_options' ) )
+		if (
+			   ! current_user_can( 'manage_options' )
+			|| ! wp_verify_nonce( $_REQUEST['_wpnonce'], 'go_slog_clear' )
+		)
 		{
-			return;
+			wp_die( 'Not cool', 'Unauthorized access', array( 'response' => 401 ) );
 		} // end if
 
 		Go_Slog::simple_db()->deleteDomain( Go_Slog::$config['aws_sdb_domain'] );
 
-		die( '<p><strong>Log Cleared!</strong></p>' );
+		wp_redirect( admin_url( 'tools.php?page=go-slog-show&slog-cleared=yes' ) );
+		die;
 	} // end clear_log
 
 	/**
@@ -62,103 +86,125 @@ class Go_Slog_Admin
 
 		nocache_headers();
 
-		$this->var_dump = ( $_GET['var_dump'] == 'yes' ) ? TRUE : FALSE;
-		$next_token     = ( $_GET['next'] != '' ) ? base64_decode( $_GET['next'] ) : NULL;
+		$this->var_dump = isset( $_GET['var_dump'] ) ? TRUE : FALSE;
+		
+		$log_query = $this->log_query();
 
-		$log_query = Go_Slog::simple_db()->select( 'SELECT * FROM `' . Go_Slog::$config['aws_sdb_domain'] . '` WHERE log_date IS NOT NULL ORDER BY log_date DESC LIMIT ' . $this->limit, $next_token );
+		$this->current_slog_vars = $this->var_dump ? '&var_dump=yes' : '';
+		$this->current_slog_vars .= 100 != $this->limit ? '&limit=' . $this->limit : '';
 
-		if ( $_GET['csv'] == 'yes' )
-		{
-			header( 'Content-Type: text/csv' );
-			header( 'Content-Disposition: attachment;filename=' . Go_Slog::$config['aws_sdb_domain'] . '.csv' );
-			$csv = fopen( 'php://output', 'w' );
+		$js_slog_url = 'tools.php?page=go-slog-show' . preg_replace( '#&limit=[0-9]+#', '', $this->current_slog_url );
 
-			$columns = array(
-				'Date',
-				'Host',
-				'Code',
-				'Message',
-				'Data',
-			);
+		require_once __DIR__ . '/class-go-slog-admin-table.php';
 
-			fputcsv( $csv, $columns );
+		$go_slog_table = new GO_Slog_Admin_Table();
 
-			foreach ( $log_query as $key => $row )
-			{
-				$microtime = explode( '.', $row['log_date'] );
-
-				$line = array(
-					date( 'Y-m-d H:i:s', $microtime[0] ) . '.' . $microtime[1],
-					$row['host'],
-					$row['code'],
-				    $row['message'],
-					$this->format_data( $row['data'] ),
-				);
-
-				fputcsv($csv, $line);
-			} // end foreach
-
-			exit;
-		} // end if
-
+		$go_slog_table->log_query = $log_query;
 		?>
-		<style type="text/css" media="screen">
-		table {
-		  width: 100%;
-		  border: 1px solid black;
-		}
+		<div class="wrap view-slog">
+			<?php screen_icon('tools'); ?>
+			<h2>View Slog</h2>
+			<?php
+			if ( isset( $_GET['slog-cleared'] ) )
+			{
+				?>
+				<div id="message" class="updated">
+					<p>Slog cleared!</p>
+				</div>
+				<?php
+			}
 
-		th, td {
-			padding: 3px 7px;
-		}
-
-		th {
-			text-align: left;
-			border-bottom: 4px solid black;
-		}
-
-		th span {
-			float: right;
-		}
-
-		td {
-			border-bottom: 1px solid silver;
-		}
-
-		tr.odd td {
-			background-color: #efefef;
-		}
-		</style>
-		<table border="0" cellspacing="0" cellpadding="0">
-		<tr><th class="date">Date</th><th>Host</th><th>Code</th><th>Message</th><th>Data <span><a href="admin-ajax.php?action=go-slog-clear" title="Clear Log">Clear Log</a></span></th></tr>
+			$go_slog_table->prepare_items();
+			$go_slog_table->custom_display();
+			?>
+			<input type="hidden" name="js_slog_url" value="<?php echo esc_attr( $js_slog_url ); ?>" id="js_slog_url" />
+		</div>
 		<?php
+	} // end show_log
 
-		foreach ($log_query as $key => $row)
+	/**
+	 * Export current log results to a CSV file
+	 */
+	public function export_csv( $log_query )
+	{
+		if (
+			   ! current_user_can( 'manage_options' )
+			|| ! wp_verify_nonce( $_REQUEST['_wpnonce'], 'go_slog_csv' )
+		)
 		{
-			$class = ( $key & 1 ) ? 'odd' : 'even';
+			wp_die( 'Not cool', 'Unauthorized access', array( 'response' => 401 ) );
+		} // end if
+		
+		$log_query = $this->log_query();
+		
+		header( 'Content-Type: text/csv' );
+		header( 'Content-Disposition: attachment;filename=' . Go_Slog::$config['aws_sdb_domain'] . '.csv' );
 
+		$csv = fopen( 'php://output', 'w' );
+
+		$columns = array(
+			'Date',
+			'Host',
+			'Code',
+			'Message',
+			'Data',
+		);
+
+		fputcsv( $csv, $columns );
+
+		foreach ( $log_query as $key => $row )
+		{
 			$microtime = explode( '.', $row['log_date'] );
 
-			echo '<tr valign="top" class="' . $class . '">';
+			$line = array(
+				date( 'Y-m-d H:i:s', $microtime[0] ) . '.' . $microtime[1],
+				$row['host'],
+				$row['code'],
+				$row['message'],
+				$this->format_data( $row['data'] ),
+			);
 
-			echo '<td>' . date( 'Y-m-d H:i:s', $microtime[0] ) . '.' . $microtime[1] . '</td>';
-			echo '<td>' . $row['host'] . '</td>';
-			echo '<td>' . $row['code'] . '</td>';
-			echo '<td>' . $row['message'] . '</td>';
-			echo '<td><pre>' . $this->format_data( $row['data'] ) . '</pre></td>';
-
-			echo "</tr>\n";
+			fputcsv( $csv, $line );
 		} // end foreach
 
-		echo '</table>';
+		die;
+	} // END export_csv
 
+	/**
+	 * Returns relevant log items from the log
+	 */
+	public function log_query()
+	{
+		$this->limit = isset( $_GET['limit'] ) && isset( $this->limits[ $_GET['limit'] ] ) ? $_GET['limit'] : $this->limit;
+		$next_token  = isset( $_GET['next'] ) ? base64_decode( $_GET['next'] ) : NULL;
 
-		if ( Go_Slog::simple_db()->NextToken != '' )
+		return Go_Slog::simple_db()->select( 'SELECT * FROM `' . Go_Slog::$config['aws_sdb_domain'] . '` WHERE log_date IS NOT NULL ORDER BY log_date DESC LIMIT ' . $this->limit, $next_token );
+	} // END log_query
+
+	/**
+	 * Helper function to build select options
+	 */
+	public function build_options( $options, $existing )
+	{
+		$select_options = '';
+
+		foreach ( $options as $option => $text )
 		{
-			$var_dump = ($this->var_dump) ? '&amp;var_dump=yes' : '';
-			echo '<p><a href="admin-ajax.php?action=go-slog-show&amp;next=' . base64_encode( Go_Slog::simple_db()->NextToken ) . $var_dump . '" title="Next Page">Next Page</a></p>';
-		} // end if
+			$select_options .= '<option value="' . esc_attr( $option ) . '"' . selected( $option, $existing, FALSE ) . '>' . $text . "</option>\n";
+		} // END foreach
 
-		die();
-	} // end show_log
-}// end class
+		return $select_options;
+	} // END build_options
+}// end GO_Slog_Admin
+
+function go_slog_admin()
+{
+	global $go_slog_admin;
+
+	if ( ! isset( $go_slog_admin ) )
+	{
+		$go_slog_admin = new GO_Slog_Admin();
+	}// end if
+
+	return $go_slog_admin;
+}// end go_slog_admin
