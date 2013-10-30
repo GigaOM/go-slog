@@ -12,6 +12,18 @@ Description
 
 A way to log occurances to an Amazon Simple DB (requires [Gigaom Simple DB](http://github.com/GigaOM/go-simple-db/)).
 
+Why Does This Exist?
+--------------------
+
+We originally created this to allow us to log errors in our code when we weren't able to access the error logs on the server we saw the errors and weren't able to reproduce them locally.  However, since then we've found it useful in a few other cases as well.
+
+Here's our short list (you may be able to think of more):
+
+1. When you need to log errors but don't have admin access to the error logs on the server.
+2. When you need a cosolidated log between two different servers that are running related code.
+	* In our case we had two servers talking to each other and needed a view into how that conversation was going in a consolidated fashion.
+3. When you have a rare error that you need log it but don't want to dig through months of error log files.
+
 Usage Notes
 -----------
 
@@ -28,7 +40,10 @@ Usage Notes
 	* $message - Some error message (e.g. Attempt to contact the endpoint failed.)
 	* $data - An array of data that will be helpful in debugging (e.g. ```array( 'post_id' => 131, 'post_title' => 'Test Post' )```)
 		* Note: Amazon Simple DB values have a [1024 byte size limit](http://docs.aws.amazon.com/AmazonSimpleDB/latest/DeveloperGuide/SDBLimits.html).
-3. View Log: /wp-admin/tools.php?page=go-slog-show
+3. View Slog: /wp-admin/tools.php?page=go-slog-show
+	* Slog can be paged through up to a 1000 items at a time (SDB has a 1000 item query limit)
+	* Slog items can also be exported to CSV.
+	* If you need to clear out your Slog you can do that from the admin panel as well.
 
 Report Issues, Contribute Code, or Fix Stuff
 --------------------------------------------
