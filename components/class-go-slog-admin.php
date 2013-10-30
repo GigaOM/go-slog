@@ -170,6 +170,9 @@ class GO_Slog_Admin
 		die;
 	} // END export_csv
 
+	/**
+	 * Returns relevant log items from the log
+	 */
 	public function log_query()
 	{
 		$this->limit = isset( $_GET['limit'] ) && isset( $this->limits[ $_GET['limit'] ] ) ? $_GET['limit'] : $this->limit;

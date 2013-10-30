@@ -6,7 +6,7 @@ class GO_Slog_Admin_Table extends WP_List_Table
 
 	public function __construct()
 	{
-		//Set parent defaults
+		// Set parent defaults
 		parent::__construct(
 			array(
 				'singular' => 'slog-item',  //singular name of the listed records
@@ -16,6 +16,9 @@ class GO_Slog_Admin_Table extends WP_List_Table
 		);
 	} // END __construct
 
+	/**
+	 * Display the various columns for each item
+	 */
 	public function column_default( $item, $column_name )
 	{
 		switch( $column_name )
@@ -27,11 +30,17 @@ class GO_Slog_Admin_Table extends WP_List_Table
 		} // END switch
 	} // END column_default
 
+	/**
+	 * Custom display stuff for the data column
+	 */
 	public function column_slog_data( $item )
 	{
 		return '<pre>' . $item['slog_data'] . '</pre>';
 	} // END column_children
 
+	/**
+	 * Return an array of the columns with keys that match the compiled items
+	 */
 	public function get_columns()
 	{
 		$columns = array(
@@ -45,6 +54,9 @@ class GO_Slog_Admin_Table extends WP_List_Table
 		return $columns;
 	} // END get_columns
 
+	/**
+	 * Display the individual rows of the table
+	 */
 	public function single_row( $item )
 	{
 		static $row_class = '';
@@ -55,6 +67,9 @@ class GO_Slog_Admin_Table extends WP_List_Table
 		echo '</tr>';
 	} // END single_row
 
+	/**
+	 * Display nav items for the table
+	 */
 	public function display_tablenav( $which )
 	{
 		if ( 'top' == $which )
@@ -67,6 +82,9 @@ class GO_Slog_Admin_Table extends WP_List_Table
 		} // END else
 	} // END display_tablenav
 
+	/**
+	 * Display nav items for above the table
+	 */
 	public function table_nav_top()
 	{
 		$clear_slog_url   = wp_nonce_url( admin_url( 'admin-ajax.php?action=go-slog-clear' ), 'go_slog_clear' );
@@ -106,6 +124,9 @@ class GO_Slog_Admin_Table extends WP_List_Table
 		<?php
 	} // END table_nav_top
 
+	/**
+	 * Display nav items to show below the table.
+	 */
 	public function table_nav_bottom()
 	{
 		if ( '' != Go_Slog::simple_db()->NextToken )
@@ -125,6 +146,9 @@ class GO_Slog_Admin_Table extends WP_List_Table
 		} // end if
 	} // END table_nav_bottom
 
+	/**
+	 * Initial prep for WP_List_Table
+	 */
 	public function prepare_items()
 	{
 		global $wpdb;
@@ -139,6 +163,9 @@ class GO_Slog_Admin_Table extends WP_List_Table
 		$this->items = $this->compile_posts();
 	} // END prepare_items
 
+	/**
+	 * Display the log or an error message that the log is empty
+	 */
 	public function custom_display()
 	{		
 		if ( ! empty( $this->items ) )
@@ -155,6 +182,9 @@ class GO_Slog_Admin_Table extends WP_List_Table
 		} // END if
 	} // END custom_display
 
+	/**
+	 * Compile the log items into a format appropriate for WP_List_Table
+	 */
 	public function compile_posts( $children, $embeds )
 	{
 		$compiled = array();
