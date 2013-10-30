@@ -182,7 +182,7 @@ class GO_Slog_Admin
 	} // END log_query
 
 	/**
-	 * Helper fucntion to build select options
+	 * Helper function to build select options
 	 */
 	public function build_options( $options, $existing )
 	{
