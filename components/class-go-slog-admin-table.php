@@ -194,7 +194,7 @@ class GO_Slog_Admin_Table extends WP_List_Table
 				'slog_date'    => date( 'Y-m-d H:i:s', $microtime[0] ) . '.' . $microtime[1],
 				'slog_host'    => esc_html( $row['host'] ),
 				'slog_code'    => esc_html( $row['code'] ),
-			    'slog_message' => esc_html( $row['message'] ),
+				'slog_message' => esc_html( $row['message'] ),
 				'slog_data'    => esc_html( go_slog_admin()->format_data( $row['data'] ) ),
 			);
 		} // end foreach
