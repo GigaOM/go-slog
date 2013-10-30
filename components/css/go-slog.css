@@ -1,0 +1,21 @@
+/* @override 
+	http://localhost/wp-content/plugins/go-slog/components/css/go-slog.css?ver=3.7.1 */
+
+.view-slog table #slog_date {
+	width: 105px;
+}
+
+.view-slog table .column-slog_date {
+	word-wrap: normal;
+}
+
+.view-slog table #slog_host,
+.view-slog table #slog_code {
+	width: 137px;
+}
+
+.view-slog table .column-slog_data pre {
+	margin: 0;
+	overflow: scroll;
+	word-wrap: normal;
+}

@@ -22,7 +22,7 @@ Hacking Notes
 		'aws_sdb_domain' => 'YOUR_SDB_DOMAIN',
 	);```
 	* See: [Amazon Simple DB Getting Started Guide](http://docs.aws.amazon.com/AmazonSimpleDB/latest/GettingStartedGuide/Welcome.html)
-2. Log items: ```apply_filter( 'go_slog', $code, $message, $data );```
+2. Log items: ```apply_filters( 'go_slog', $code, $message, $data );```
 	* $code - Some error code string (e.g. warning, error, error-type-1, etc...)
 	* $message - Some error message (e.g. Attempt to contact the endpoint failed.)
 	* $data - An array of data that will be helpful in debugging (e.g. ```array( 'post_id' => 131, 'post_title' => 'Test Post' )```)
