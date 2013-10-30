@@ -21,13 +21,10 @@ class GO_Slog_Admin_Table extends WP_List_Table
 	 */
 	public function column_default( $item, $column_name )
 	{
-		switch( $column_name )
+		if ( array_key_exists( $column_name, $this->_column_headers[0] ) )
 		{
-			case array_key_exists( $column_name, $this->_column_headers[0] ):
-				return $item[ $column_name ];
-			default:
-				return print_r( $item, TRUE ); // Show the whole array for troubleshooting purposes
-		} // END switch
+			return $item[ $column_name ];
+		} // END if
 	} // END column_default
 
 	/**
