@@ -59,9 +59,49 @@ class GO_Slog_Admin_Table extends WP_List_Table
 		static $row_class = '';
 		$row_class = ( '' == $row_class ) ? ' class="alternate"' : '';
 
-		echo '<tr' . $row_class . '>';
-		echo $this->single_row_columns( $item );
-		echo '</tr>';
+		if ( isset( $item['search'] ) )
+		{
+			$host    = isset( $_REQUEST['host'] ) ? $_REQUEST['host'] : '';
+			$code    = isset( $_REQUEST['code'] ) ? $_REQUEST['code'] : '';
+			// Handle the two cases of a message value seperately
+			$message = isset( $_POST['message'] ) ? $_POST['message'] : '';
+			$message = isset( $_GET['message'] ) ? base64_decode( $_GET['message'] ) : '';
+			?>
+			<tr class="search-controls">
+				<form action="tools.php?page=go-slog-show&search=yes<?php echo go_slog_admin()->current_slog_vars; ?>" method="post">
+					<td></td>
+					<td>
+						<p>
+							<span>*</span><input type="text" name="host" value="<?php echo esc_attr( $host ); ?>" />
+						</p>
+					</td>
+					<td>
+						<p>
+							<span>*</span><input type="text" name="code" value="<?php echo esc_attr( $code ); ?>" />
+						</p>
+					</td>
+					<td>
+						<p>
+							<input type="text" name="message" value="<?php echo esc_attr( $message ); ?>" />
+						</p>
+					</td>
+					<td>
+						<p><button class="button">Search</button></p>
+					</td>
+				</form>
+			</tr>
+			<tr class="search-instructions">
+				<td></td>
+				<td colspan="4">* Results will only be returned if the column value matches exactly.</td>
+			</tr>
+			<?php
+		} // END if
+		else
+		{
+			echo '<tr' . $row_class . '>';
+			echo $this->single_row_columns( $item );
+			echo '</tr>';
+		} // END else
 	} // END single_row
 
 	/**
@@ -164,7 +204,7 @@ class GO_Slog_Admin_Table extends WP_List_Table
 	 * Display the log or an error message that the log is empty
 	 */
 	public function custom_display()
-	{		
+	{
 		if ( ! empty( $this->items ) )
 		{
 			$this->display();
@@ -184,7 +224,7 @@ class GO_Slog_Admin_Table extends WP_List_Table
 	 */
 	public function compile_posts( $children, $embeds )
 	{
-		$compiled = array();
+		$compiled = array( array( 'search' => TRUE ) );
 
 		foreach ( $this->log_query as $key => $row )
 		{
