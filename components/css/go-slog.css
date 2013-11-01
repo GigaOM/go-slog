@@ -47,3 +47,7 @@
 	border-top: none;
 	padding-bottom: 5px;
 }
+
+.mp6 .view-slog .search-instructions td {
+	border-bottom: 1px solid #e1e1e1;
+}
