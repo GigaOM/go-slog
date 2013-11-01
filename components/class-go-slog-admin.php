@@ -211,7 +211,6 @@ class GO_Slog_Admin
 		if ( $_REQUEST['message'] )
 		{
 			$message = isset( $_GET['message'] ) ? base64_decode( $_GET['message'] ) : $_POST['message'];
-
 			$limits .= " AND message LIKE '%" . esc_sql( $message ) . "%'";
 		} // END if
 
