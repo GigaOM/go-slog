@@ -87,13 +87,18 @@ class GO_Slog_Admin
 		nocache_headers();
 
 		$this->var_dump = isset( $_GET['var_dump'] ) ? TRUE : FALSE;
-		
+
 		$log_query = $this->log_query();
 
 		$this->current_slog_vars = $this->var_dump ? '&var_dump=yes' : '';
 		$this->current_slog_vars .= 100 != $this->limit ? '&limit=' . $this->limit : '';
+		$this->current_slog_vars .= isset( $_REQUEST['host'] ) && '' != $_REQUEST['host'] ? '&host=' . $_REQUEST['host'] : '';
+		$this->current_slog_vars .= isset( $_REQUEST['code'] ) && '' != $_REQUEST['code'] ? '&code=' . $_REQUEST['code'] : '';
+		// Handle the two cases of a message value seperately
+		$this->current_slog_vars .= isset( $_POST['message'] ) && '' != $_POST['message'] ? '&message=' . base64_encode( $_POST['message'] ) : '';
+		$this->current_slog_vars .= isset( $_GET['message'] ) && '' != $_GET['message'] ? '&message=' . $_GET['message'] : '';
 
-		$js_slog_url = 'tools.php?page=go-slog-show' . preg_replace( '#&limit=[0-9]+#', '', $this->current_slog_url );
+		$js_slog_url = 'tools.php?page=go-slog-show' . preg_replace( '#&limit=[0-9]+#', '', $this->current_slog_vars );
 
 		require_once __DIR__ . '/class-go-slog-admin-table.php';
 
@@ -134,9 +139,9 @@ class GO_Slog_Admin
 		{
 			wp_die( 'Not cool', 'Unauthorized access', array( 'response' => 401 ) );
 		} // end if
-		
+
 		$log_query = $this->log_query();
-		
+
 		header( 'Content-Type: text/csv' );
 		header( 'Content-Disposition: attachment;filename=' . Go_Slog::$config['aws_sdb_domain'] . '.csv' );
 
@@ -178,8 +183,39 @@ class GO_Slog_Admin
 		$this->limit = isset( $_GET['limit'] ) && isset( $this->limits[ $_GET['limit'] ] ) ? $_GET['limit'] : $this->limit;
 		$next_token  = isset( $_GET['next'] ) ? base64_decode( $_GET['next'] ) : NULL;
 
-		return Go_Slog::simple_db()->select( 'SELECT * FROM `' . Go_Slog::$config['aws_sdb_domain'] . '` WHERE log_date IS NOT NULL ORDER BY log_date DESC LIMIT ' . $this->limit, $next_token );
+		return Go_Slog::simple_db()->select(
+			'SELECT * FROM `' . Go_Slog::$config['aws_sdb_domain']
+			. '` WHERE log_date IS NOT NULL ' . $this->search_limits()
+			. 'ORDER BY log_date DESC LIMIT ' . $this->limit,
+			$next_token
+		);
 	} // END log_query
+
+	/**
+	 * Return SQL limits for the three search/filter fields
+	 */
+	public function search_limits()
+	{
+		$limits = '';
+
+		if ( $_REQUEST['host'] )
+		{
+			$limits .= " AND host = '" . esc_sql( $_REQUEST['host'] ) . "'";
+		} // END if
+
+		if ( $_REQUEST['code'] )
+		{
+			$limits .= " AND code = '" . esc_sql( $_REQUEST['code'] ) . "'";
+		} // END if
+
+		if ( $_REQUEST['message'] )
+		{
+			$message = isset( $_GET['message'] ) ? base64_decode( $_GET['message'] ) : $_POST['message'];
+			$limits .= " AND message LIKE '%" . esc_sql( $message ) . "%'";
+		} // END if
+
+		return $limits;
+	} // END search_limits
 
 	/**
 	 * Helper function to build select options

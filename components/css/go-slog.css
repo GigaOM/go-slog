@@ -1,6 +1,3 @@
-/* @override 
-	http://localhost/wp-content/plugins/go-slog/components/css/go-slog.css?ver=3.7.1 */
-
 .view-slog table #slog_date {
 	width: 105px;
 }
@@ -18,4 +15,39 @@
 	margin: 0;
 	overflow: scroll;
 	word-wrap: normal;
+}
+
+.view-slog .search-controls p {
+	margin-bottom: 5px;
+}
+
+.view-slog .search-controls td:first-child p {
+	margin-top: 7px;
+	text-align: right;
+} 
+
+.view-slog .search-controls span {
+	float: right;
+}
+
+.view-slog .search-controls input {
+	width: 125px;
+	float: left;
+}
+
+.view-slog .search-controls input:nth-child(1) {
+	width: 100%;
+}
+
+.view-slog .search-controls td {
+	border-bottom: none;
+}
+
+.view-slog .search-instructions td {
+	border-top: none;
+	padding-bottom: 5px;
+}
+
+.mp6 .view-slog .search-instructions td {
+	border-bottom: 1px solid #e1e1e1;
 }
