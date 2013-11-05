@@ -41,6 +41,7 @@ class GO_Slog_Admin
 	{
 		if (
 			   ! current_user_can( 'manage_options' )
+			|| ! isset( $_REQUEST['_wpnonce'] )
 			|| ! wp_verify_nonce( $_REQUEST['_wpnonce'], 'go_slog_clear' )
 		)
 		{
@@ -134,6 +135,7 @@ class GO_Slog_Admin
 	{
 		if (
 			   ! current_user_can( 'manage_options' )
+			|| ! isset( $_REQUEST['_wpnonce'] )
 			|| ! wp_verify_nonce( $_REQUEST['_wpnonce'], 'go_slog_csv' )
 		)
 		{
@@ -198,17 +200,17 @@ class GO_Slog_Admin
 	{
 		$limits = '';
 
-		if ( $_REQUEST['host'] )
+		if ( isset( $_REQUEST['host'] ) && '' != $_REQUEST['host'] )
 		{
 			$limits .= " AND host = '" . esc_sql( $_REQUEST['host'] ) . "'";
 		} // END if
 
-		if ( $_REQUEST['code'] )
+		if ( isset( $_REQUEST['code'] ) && '' != $_REQUEST['code'] )
 		{
 			$limits .= " AND code = '" . esc_sql( $_REQUEST['code'] ) . "'";
 		} // END if
 
-		if ( $_REQUEST['message'] )
+		if ( isset( $_REQUEST['message'] ) && '' != $_REQUEST['message'] )
 		{
 			$message = isset( $_GET['message'] ) ? base64_decode( $_GET['message'] ) : $_POST['message'];
 			$limits .= " AND message LIKE '%" . esc_sql( $message ) . "%'";
