@@ -17,7 +17,8 @@ class GO_Slog
 
 		if ( is_admin() )
 		{
-			$this->admin();
+			include_once __DIR__ . '/class-go-slog-admin.php';
+			go_slog_admin();
 		} // end if
 
 		add_filter( 'go_slog', 'Go_Slog::log', 10, 3 );
@@ -27,25 +28,9 @@ class GO_Slog
 		$this->config( apply_filters( 'go_config', FALSE, 'go-slog' ) );
 	} // end __construct
 
-	/**
-	 * Admin class singleton
-	 */
-	public function admin()
-	{
-		global $go_slog_admin;
-
-		if ( ! isset( $go_slog_admin ) )
-		{
-			include_once __DIR__ . '/class-go-slog-admin.php';
-			$go_slog_admin = new GO_Slog_Admin();
-		}// end if
-
-		return $go_slog_admin;
-	} // END admin
-
 	public function clean_log()
 	{
-		$this->admin()->clean_log();
+		go_slog_admin()->clean_log();
 		echo TRUE;
 		die;
 	} // END clean_log
