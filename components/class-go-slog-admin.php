@@ -55,6 +55,35 @@ class GO_Slog_Admin
 	} // end clear_log
 
 	/**
+	 * Cleans log of items older than 10 days
+	 */
+	public function clean_log()
+	{
+		// Amazon SDB won't delete records conditionally so we are left with this
+		$expired_log_items = Go_Slog::simple_db()->select(
+			'SELECT itemName FROM `' . Go_Slog::$config['aws_sdb_domain'] . "` WHERE log_date < '"
+			. strtotime( '-1 week' ) . ".00000000' ORDER BY log_date ASC LIMIT 1000",
+			NULL
+		);
+
+		$expired_log_items = array_keys( $expired_log_items );
+
+		// Amazon SDB only allows up to 25 items at a time to be deleted so we get to have fun here
+		$chunk = array();
+
+		foreach ( $expired_log_items as $item_name )
+		{
+			$chunk[ $item_name ] = NULL;
+
+			if ( 25 == count( $chunk ) )
+			{
+				Go_Slog::simple_db()->batchDeleteAttributes( Go_Slog::$config['aws_sdb_domain'], $chunk );
+				$chunk = array();
+			} // END if
+		} // END foreach
+	} // END clean_log
+
+	/**
 	 * Formats data for output
 	 * @param $data array
 	 * @return string formatted data
