@@ -95,6 +95,14 @@ class GO_Slog_Admin_Table extends WP_List_Table
 				<td colspan="4">* Results will only be returned if the column value matches exactly.</td>
 			</tr>
 			<?php
+			if ( 1 == count( $this->items ) )
+			{
+				?>
+				<tr class="no-items">
+					<td colspan="5">No log items found.</td>
+				</tr>
+				<?php
+			} // END if
 		} // END if
 		else
 		{
@@ -124,7 +132,7 @@ class GO_Slog_Admin_Table extends WP_List_Table
 	 */
 	public function table_nav_top()
 	{
-		$clear_slog_url   = wp_nonce_url( admin_url( 'admin-ajax.php?action=go-slog-clear' ), 'go_slog_clear' );
+		$clear_slog_url   = wp_nonce_url( admin_url( 'admin-ajax.php?action=go-slog-clear&week=' . go_slog_admin()->week ), 'go_slog_clear' );
 		$next_token       = isset( $_GET['next'] ) ? '&next=' . $_GET['next'] : '';
 		$csv_export_url   = wp_nonce_url( 'admin-ajax.php?action=go-slog-csv' . go_slog_admin()->current_slog_vars . '&csv=yes' . $next_token, 'go_slog_csv' );
 
@@ -141,7 +149,7 @@ class GO_Slog_Admin_Table extends WP_List_Table
 			</div>
 			<div class="alignright">
 				<?php
-				if ( 0 != $count )
+				if ( 1 < $count )
 				{
 					?>
 					<p>
