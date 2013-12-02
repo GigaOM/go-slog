@@ -25,6 +25,7 @@ class GO_Slog_Admin
 		add_action( 'admin_menu', array( $this, 'admin_menu' ) );
 		add_action( 'wp_ajax_go-slog-clear', array( $this, 'clear_log' ) );
 		add_action( 'wp_ajax_go-slog-csv', array( $this, 'export_csv' ) );
+		add_action( 'wp_ajax_go-slog-cron-register', array( $this, 'cron_register_admin_ajax' ) );
 	} // end __construct
 
 	public function admin_init()
@@ -54,7 +55,7 @@ class GO_Slog_Admin
 			wp_die( 'Not cool', 'Unauthorized access', array( 'response' => 401 ) );
 		} // end if
 
-		GO_Slog::simple_db()->deleteDomain( Go_Slog::$config['aws_sdb_domain'] . $this->domain_suffix[ $_REQUEST['week'] ] );
+		GO_Slog::simple_db()->deleteDomain( GO_Slog::$config['aws_sdb_domain'] . $this->domain_suffix[ $_REQUEST['week'] ] );
 
 		wp_redirect( admin_url( 'tools.php?page=go-slog-show&slog-cleared=yes' ) );
 		die;
@@ -66,8 +67,8 @@ class GO_Slog_Admin
 	public function clean_log()
 	{
 		// Amazon SDB won't delete records conditionally so we are left with this
-		$expired_log_items = Go_Slog::simple_db()->select(
-			'SELECT itemName FROM `' . Go_Slog::$config['aws_sdb_domain'] . "` WHERE log_date < '"
+		$expired_log_items = GO_Slog::simple_db()->select(
+			'SELECT itemName FROM `' . GO_Slog::$config['aws_sdb_domain'] . "` WHERE log_date < '"
 			. strtotime( '-1 week' ) . ".00000000' ORDER BY log_date ASC LIMIT 1000",
 			NULL
 		);
@@ -83,7 +84,7 @@ class GO_Slog_Admin
 
 			if ( 25 == count( $chunk ) )
 			{
-				Go_Slog::simple_db()->batchDeleteAttributes( Go_Slog::$config['aws_sdb_domain'], $chunk );
+				GO_Slog::simple_db()->batchDeleteAttributes( GO_Slog::$config['aws_sdb_domain'], $chunk );
 				$chunk = array();
 			} // END if
 		} // END foreach
@@ -186,7 +187,7 @@ class GO_Slog_Admin
 		$log_query = $this->log_query();
 
 		header( 'Content-Type: text/csv' );
-		header( 'Content-Disposition: attachment;filename=' . Go_Slog::$config['aws_sdb_domain'] . '.csv' );
+		header( 'Content-Disposition: attachment;filename=' . GO_Slog::$config['aws_sdb_domain'] . '.csv' );
 
 		$csv = fopen( 'php://output', 'w' );
 
@@ -223,14 +224,14 @@ class GO_Slog_Admin
 	 */
 	public function log_query()
 	{
-		Go_Slog::check_domains();
+		GO_Slog::check_domains();
 
 		$this->limit = isset( $_GET['limit'] ) && isset( $this->limits[ $_GET['limit'] ] ) ? $_GET['limit'] : $this->limit;
 		$this->week  = isset( $_GET['week'] ) && isset( $this->domain_suffix[ $_GET['week'] ] ) ? $_GET['week'] : $this->week;
 		$next_token  = isset( $_GET['next'] ) ? base64_decode( $_GET['next'] ) : NULL;
 
-		return Go_Slog::simple_db()->select(
-			'SELECT * FROM `' . Go_Slog::$config['aws_sdb_domain'] . $this->domain_suffix[ $this->week ]
+		return GO_Slog::simple_db()->select(
+			'SELECT * FROM `' . GO_Slog::$config['aws_sdb_domain'] . $this->domain_suffix[ $this->week ]
 			. '` WHERE log_date IS NOT NULL ' . $this->search_limits()
 			. 'ORDER BY log_date DESC LIMIT ' . $this->limit,
 			$next_token
@@ -277,6 +278,22 @@ class GO_Slog_Admin
 
 		return $select_options;
 	} // END build_options
+
+	/**
+	 * Register the cleaning cron and preemptively run clean domains function
+	 */
+	public function cron_register_admin_ajax()
+	{
+		if ( ! current_user_can( 'manage_options' ) )
+		{
+			wp_die( 'Not cool', 'Unauthorized access', array( 'response' => 401 ) );
+		} // end if
+
+		go_slog()->clean_domains();
+		go_slog()->cron_register();
+		echo TRUE;
+		die;
+	} // END cron_register_admin_ajax
 }// end GO_Slog_Admin
 
 function go_slog_admin()
