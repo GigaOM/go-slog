@@ -12,15 +12,12 @@ class GO_Slog_Admin
 		'1000' => '1000',
 	);
 	public $current_slog_vars;
-	public $domain_suffix;
 
 	/**
 	 * Constructor to establish a couple ajax endpoints
 	 */
 	public function __construct()
 	{
-		$this->domain_suffix = GO_Slog::get_domain_suffix();
-
 		add_action( 'admin_init', array( $this, 'admin_init' ) );
 		add_action( 'admin_menu', array( $this, 'admin_menu' ) );
 		add_action( 'wp_ajax_go-slog-clear', array( $this, 'clear_log' ) );
@@ -48,47 +45,18 @@ class GO_Slog_Admin
 			   ! current_user_can( 'manage_options' )
 			|| ! isset( $_REQUEST['_wpnonce'] )
 			|| ! isset( $_REQUEST['week'] )
-			|| ! isset( $this->domain_suffix[ $_REQUEST['week'] ] )
+			|| ! isset( go_slog()->domain_suffix[ $_REQUEST['week'] ] )
 			|| ! wp_verify_nonce( $_REQUEST['_wpnonce'], 'go_slog_clear' )
 		)
 		{
 			wp_die( 'Not cool', 'Unauthorized access', array( 'response' => 401 ) );
 		} // end if
 
-		GO_Slog::simple_db()->deleteDomain( GO_Slog::$config['aws_sdb_domain'] . $this->domain_suffix[ $_REQUEST['week'] ] );
+		go_slog()->simple_db()->deleteDomain( go_slog()->config['aws_sdb_domain'] . go_slog()->domain_suffix[ $_REQUEST['week'] ] );
 
 		wp_redirect( admin_url( 'tools.php?page=go-slog-show&slog-cleared=yes' ) );
 		die;
-	} // end clear_log
-
-	/**
-	 * Cleans log of items older than 10 days
-	 */
-	public function clean_log()
-	{
-		// Amazon SDB won't delete records conditionally so we are left with this
-		$expired_log_items = GO_Slog::simple_db()->select(
-			'SELECT itemName FROM `' . GO_Slog::$config['aws_sdb_domain'] . "` WHERE log_date < '"
-			. strtotime( '-1 week' ) . ".00000000' ORDER BY log_date ASC LIMIT 1000",
-			NULL
-		);
-
-		$expired_log_items = array_keys( $expired_log_items );
-
-		// Amazon SDB only allows up to 25 items at a time to be deleted so we get to have fun here
-		$chunk = array();
-
-		foreach ( $expired_log_items as $item_name )
-		{
-			$chunk[ $item_name ] = NULL;
-
-			if ( 25 == count( $chunk ) )
-			{
-				GO_Slog::simple_db()->batchDeleteAttributes( GO_Slog::$config['aws_sdb_domain'], $chunk );
-				$chunk = array();
-			} // END if
-		} // END foreach
-	} // END clean_log
+	} // end clear_logg
 
 	/**
 	 * Formats data for output
@@ -187,7 +155,7 @@ class GO_Slog_Admin
 		$log_query = $this->log_query();
 
 		header( 'Content-Type: text/csv' );
-		header( 'Content-Disposition: attachment;filename=' . GO_Slog::$config['aws_sdb_domain'] . '.csv' );
+		header( 'Content-Disposition: attachment;filename=' . go_slog()->config['aws_sdb_domain'] . '.csv' );
 
 		$csv = fopen( 'php://output', 'w' );
 
@@ -224,14 +192,14 @@ class GO_Slog_Admin
 	 */
 	public function log_query()
 	{
-		GO_Slog::check_domains();
+		go_slog()->check_domains();
 
 		$this->limit = isset( $_GET['limit'] ) && isset( $this->limits[ $_GET['limit'] ] ) ? $_GET['limit'] : $this->limit;
-		$this->week  = isset( $_GET['week'] ) && isset( $this->domain_suffix[ $_GET['week'] ] ) ? $_GET['week'] : $this->week;
+		$this->week  = isset( $_GET['week'] ) && isset( go_slog()->domain_suffix[ $_GET['week'] ] ) ? $_GET['week'] : $this->week;
 		$next_token  = isset( $_GET['next'] ) ? base64_decode( $_GET['next'] ) : NULL;
 
-		return GO_Slog::simple_db()->select(
-			'SELECT * FROM `' . GO_Slog::$config['aws_sdb_domain'] . $this->domain_suffix[ $this->week ]
+		return go_slog()->simple_db()->select(
+			'SELECT * FROM `' . go_slog()->config['aws_sdb_domain'] . go_slog()->domain_suffix[ $this->week ]
 			. '` WHERE log_date IS NOT NULL ' . $this->search_limits()
 			. 'ORDER BY log_date DESC LIMIT ' . $this->limit,
 			$next_token

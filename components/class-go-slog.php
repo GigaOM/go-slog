@@ -2,21 +2,21 @@
 
 class GO_Slog
 {
-	public static $domain_suffix;
-	public static $log_on = TRUE;
-	public static $config = array();
+	public $domain_suffix;
+	public $log_on = TRUE;
+	public $config = array();
 
 	/**
 	 * constructor to setup the simple log
 	 */
 	public function __construct( $config = NULL )
 	{
-		if ( static::$log_on == FALSE )
+		if ( $this->log_on == FALSE )
 		{
 			return;
 		} // end if
 
-		static::$domain_suffix = static::get_domain_suffix();
+		$this->domain_suffix = $this->get_domain_suffix();
 
 		if ( is_admin() )
 		{
@@ -25,7 +25,7 @@ class GO_Slog
 			add_action( 'go_slog_cron', array( $this, 'clean_domains' ) );
 		} // end if
 
-		add_filter( 'go_slog', 'Go_Slog::log', 10, 3 );
+		add_filter( 'go_slog', array( $this, 'log' ), 10, 3 );
 
 		$this->config( apply_filters( 'go_config', FALSE, 'go-slog' ) );
 	} // end __construct
@@ -40,7 +40,7 @@ class GO_Slog
 	 */
 	public function config( $config )
 	{
-		static::$config = $config;
+		$this->config = $config;
 	}// end config
 
 	/**
@@ -49,9 +49,9 @@ class GO_Slog
 	 * @param $message string The message you want to log
 	 * @param $data string The data you want logged
 	 */
-	public static function log( $code = '', $message = '', $data = '' )
+	public function log( $code = '', $message = '', $data = '' )
 	{
-		static::check_domains();
+		$this->check_domains();
 
 		$microtime = explode( ' ', microtime() );
 
@@ -61,29 +61,29 @@ class GO_Slog
 		$log_item['message']  = array( 'value' => $message );
 		$log_item['data']     = array( 'value' => serialize( $data ) );
 
-		static::simple_db()->putAttributes( static::$config['aws_sdb_domain'] . static::$domain_suffix['curr_week'], uniqid( 'log_item_' ), $log_item );
+		$this->simple_db()->putAttributes( $this->config['aws_sdb_domain'] . $this->domain_suffix['curr_week'], uniqid( 'log_item_' ), $log_item );
 	} // end log
 
 	/**
 	 * Ensure SimpleDB domains exist and that old ones are removed
 	 */
-	public static function check_domains()
+	public function check_domains()
 	{
-		$simple_db = static::simple_db();
+		$simple_db = $this->simple_db();
 
 		// Check if log domain exists and if it doesn't create it
 		$domains = $simple_db->listDomains();
 
 		// Get domain suffix
-		static::$domain_suffix = static::get_domain_suffix();
+		$this->domain_suffix = $this->get_domain_suffix();
 
 		if ( $domains )
 		{
-			foreach ( static::$domain_suffix as $suffix )
+			foreach ( $this->domain_suffix as $suffix )
 			{
-				if ( ! in_array( static::$config['aws_sdb_domain'] . $suffix, $domains ) )
+				if ( ! in_array( $this->config['aws_sdb_domain'] . $suffix, $domains ) )
 				{
-					$simple_db->createDomain( static::$config['aws_sdb_domain'] . $suffix );
+					$simple_db->createDomain( $this->config['aws_sdb_domain'] . $suffix );
 				}//end if
 			}//end foreach
 		}//end if
@@ -94,21 +94,21 @@ class GO_Slog
 	 */
 	public function clean_domains()
 	{
-		$simple_db = static::simple_db();
+		$simple_db = $this->simple_db();
 
 		// Check if log domain exists and if it doesn't create it
 		$domains = $simple_db->listDomains();
 
 		// Get domain suffix
-		static::$domain_suffix = static::get_domain_suffix();
+		$this->domain_suffix = $this->get_domain_suffix();
 
 		if ( $domains )
 		{
 			foreach ( $domains as $domain )
 			{
 				if (
-					     preg_match( '#^' . static::$config['aws_sdb_domain'] . '_[0-9]{4}_[0-9]{2}$#', $domain )
-					&& ! in_array( preg_replace( '#^' . static::$config['aws_sdb_domain'] . '#', '', $domain ), static::$domain_suffix )
+					     preg_match( '#^' . $this->config['aws_sdb_domain'] . '_[0-9]{4}_[0-9]{2}$#', $domain )
+					&& ! in_array( preg_replace( '#^' . $this->config['aws_sdb_domain'] . '#', '', $domain ), $this->domain_suffix )
 				)
 				{
 					$simple_db->deleteDomain( $domain );
@@ -131,27 +131,27 @@ class GO_Slog
 	/**
 	 * Retrieve (and generate if necessary) domain suffixes for the current and previous weeks
 	 */
-	public static function get_domain_suffix()
+	public function get_domain_suffix()
 	{
 		// Domains will be chunked by week of the year current/previous
-		if ( ! is_array( static::$domain_suffix ) )
+		if ( ! is_array( $this->domain_suffix ) )
 		{
-			static::$domain_suffix = array(
+			$this->domain_suffix = array(
 				'curr_week' => date( '_Y_W' ),
 				'prev_week' => date( '_Y_W', strtotime( 'last ' . date( 'l' ) ) ),
 			);
 		}//end if
 
-		return static::$domain_suffix;
+		return $this->domain_suffix;
 	}//end get_domain_suffix
 
 	/**
-	 * Return an AWS SimpleDB Object, leveraging the GO_Simple_DB::get singleton function
+	 * Return an AWS SimpleDB Object, leveraging the go_simple_db()->get singleton function
 	 * @return SimpleDB object
 	 */
-	public static function simple_db()
+	public function simple_db()
 	{
-		return GO_Simple_DB::get( static::$config['aws_sdb_domain'] . static::$domain_suffix['curr_week'], static::$config['aws_access_key'], static::$config['aws_secret_key'] );
+		return go_simple_db()->get( $this->config['aws_sdb_domain'] . $this->domain_suffix['curr_week'], $this->config['aws_access_key'], $this->config['aws_secret_key'] );
 	} // end simple_db
 }// end class
 
