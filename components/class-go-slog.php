@@ -146,12 +146,12 @@ class GO_Slog
 	}//end get_domain_suffix
 
 	/**
-	 * Return an AWS SimpleDB Object, leveraging the go_simple_db()->get singleton function
+	 * Return an AWS SimpleDB Object, leveraging the go_simple_db() singleton function
 	 * @return SimpleDB object
 	 */
 	public function simple_db()
 	{
-		return go_simple_db()->get( $this->config['aws_sdb_domain'] . $this->domain_suffix['curr_week'], $this->config['aws_access_key'], $this->config['aws_secret_key'] );
+		return go_simple_db( $this->config['aws_sdb_domain'] . $this->domain_suffix['curr_week'], $this->config['aws_access_key'], $this->config['aws_secret_key'] );
 	} // end simple_db
 }// end class
 
