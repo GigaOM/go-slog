@@ -25,9 +25,9 @@ class GO_Slog
 			$this->admin();
 			$this->admin->domain_suffix = $this->domain_suffix;
 			$this->admin->config = $this->config;
-			add_action( 'go_slog_cron', array( $this, 'clean_domains' ) );
 		} // end if
 
+		add_action( 'go_slog_cron', array( $this, 'clean_domains' ) );
 		add_filter( 'go_slog', array( $this, 'log' ), 10, 3 );
 	} // end __construct
 
