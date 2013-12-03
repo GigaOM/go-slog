@@ -1,6 +1,6 @@
 <?php
 
-class GO_Slog_Admin
+class GO_Slog_Admin extends GO_Slog
 {
 	public $var_dump = FALSE;
 	public $week     = 'curr_week';
@@ -12,6 +12,7 @@ class GO_Slog_Admin
 		'1000' => '1000',
 	);
 	public $current_slog_vars;
+	public $domain_suffix;
 
 	/**
 	 * Constructor to establish a couple ajax endpoints
@@ -45,14 +46,14 @@ class GO_Slog_Admin
 			   ! current_user_can( 'manage_options' )
 			|| ! isset( $_REQUEST['_wpnonce'] )
 			|| ! isset( $_REQUEST['week'] )
-			|| ! isset( go_slog()->domain_suffix[ $_REQUEST['week'] ] )
+			|| ! isset( $this->domain_suffix[ $_REQUEST['week'] ] )
 			|| ! wp_verify_nonce( $_REQUEST['_wpnonce'], 'go_slog_clear' )
 		)
 		{
 			wp_die( 'Not cool', 'Unauthorized access', array( 'response' => 401 ) );
 		} // end if
 
-		go_slog()->simple_db()->deleteDomain( go_slog()->config['aws_sdb_domain'] . go_slog()->domain_suffix[ $_REQUEST['week'] ] );
+		$this->simple_db()->deleteDomain( $this->config['aws_sdb_domain'] . $this->domain_suffix[ $_REQUEST['week'] ] );
 
 		wp_redirect( admin_url( 'tools.php?page=go-slog-show&slog-cleared=yes' ) );
 		die;
@@ -117,7 +118,7 @@ class GO_Slog_Admin
 			<h2>
 				View Slog
 				<select name='go_slog_week' class='select' id="go_slog_week">
-					<?php echo go_slog_admin()->build_options( array( 'curr_week' => 'Current Week', 'prev_week' => 'Previous Week' ), $this->week ); ?>
+					<?php echo $this->build_options( array( 'curr_week' => 'Current Week', 'prev_week' => 'Previous Week' ), $this->week ); ?>
 				</select>
 			</h2>
 			<?php
@@ -155,7 +156,7 @@ class GO_Slog_Admin
 		$log_query = $this->log_query();
 
 		header( 'Content-Type: text/csv' );
-		header( 'Content-Disposition: attachment;filename=' . go_slog()->config['aws_sdb_domain'] . '.csv' );
+		header( 'Content-Disposition: attachment;filename=' . $this->config['aws_sdb_domain'] . '.csv' );
 
 		$csv = fopen( 'php://output', 'w' );
 
@@ -192,14 +193,14 @@ class GO_Slog_Admin
 	 */
 	public function log_query()
 	{
-		go_slog()->check_domains();
+		$this->check_domains();
 
 		$this->limit = isset( $_GET['limit'] ) && isset( $this->limits[ $_GET['limit'] ] ) ? $_GET['limit'] : $this->limit;
-		$this->week  = isset( $_GET['week'] ) && isset( go_slog()->domain_suffix[ $_GET['week'] ] ) ? $_GET['week'] : $this->week;
+		$this->week  = isset( $_GET['week'] ) && isset( $this->domain_suffix[ $_GET['week'] ] ) ? $_GET['week'] : $this->week;
 		$next_token  = isset( $_GET['next'] ) ? base64_decode( $_GET['next'] ) : NULL;
 
-		return go_slog()->simple_db()->select(
-			'SELECT * FROM `' . go_slog()->config['aws_sdb_domain'] . go_slog()->domain_suffix[ $this->week ]
+		return $this->simple_db()->select(
+			'SELECT * FROM `' . $this->config['aws_sdb_domain'] . $this->domain_suffix[ $this->week ]
 			. '` WHERE log_date IS NOT NULL ' . $this->search_limits()
 			. 'ORDER BY log_date DESC LIMIT ' . $this->limit,
 			$next_token
@@ -257,21 +258,9 @@ class GO_Slog_Admin
 			wp_die( 'Not cool', 'Unauthorized access', array( 'response' => 401 ) );
 		} // end if
 
-		go_slog()->clean_domains();
-		go_slog()->cron_register();
+		$this->clean_domains();
+		$this->cron_register();
 		echo TRUE;
 		die;
 	} // END cron_register_admin_ajax
 }// end GO_Slog_Admin
-
-function go_slog_admin()
-{
-	global $go_slog_admin;
-
-	if ( ! isset( $go_slog_admin ) )
-	{
-		$go_slog_admin = new GO_Slog_Admin();
-	}// end if
-
-	return $go_slog_admin;
-}// end go_slog_admin

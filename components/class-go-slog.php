@@ -5,6 +5,7 @@ class GO_Slog
 	public $domain_suffix;
 	public $log_on = TRUE;
 	public $config = array();
+	public $admin;
 
 	/**
 	 * constructor to setup the simple log
@@ -16,19 +17,34 @@ class GO_Slog
 			return;
 		} // end if
 
-		$this->domain_suffix = $this->get_domain_suffix();
+		$this->get_domain_suffix();
+		$this->config( apply_filters( 'go_config', FALSE, 'go-slog' ) );
 
 		if ( is_admin() )
 		{
-			include_once __DIR__ . '/class-go-slog-admin.php';
-			go_slog_admin();
+			$this->admin();
+			$this->admin->domain_suffix = $this->domain_suffix;
+			$this->admin->config = $this->config;
 			add_action( 'go_slog_cron', array( $this, 'clean_domains' ) );
 		} // end if
 
 		add_filter( 'go_slog', array( $this, 'log' ), 10, 3 );
-
-		$this->config( apply_filters( 'go_config', FALSE, 'go-slog' ) );
 	} // end __construct
+
+	/**
+	 * Admin singleton
+	 */
+	public function admin()
+	{
+		include_once __DIR__ . '/class-go-slog-admin.php';
+
+		if ( ! is_object( $this->admin ) )
+		{
+			$this->admin = new GO_Slog_Admin();
+		}// end if
+
+		return $this->admin;
+	} // END admin
 
 	/*
 	 * Setup the simple log with connectivity to AWS
@@ -74,9 +90,6 @@ class GO_Slog
 		// Check if log domain exists and if it doesn't create it
 		$domains = $simple_db->listDomains();
 
-		// Get domain suffix
-		$this->domain_suffix = $this->get_domain_suffix();
-
 		if ( $domains )
 		{
 			foreach ( $this->domain_suffix as $suffix )
@@ -98,9 +111,6 @@ class GO_Slog
 
 		// Check if log domain exists and if it doesn't create it
 		$domains = $simple_db->listDomains();
-
-		// Get domain suffix
-		$this->domain_suffix = $this->get_domain_suffix();
 
 		if ( $domains )
 		{

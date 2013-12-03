@@ -65,10 +65,10 @@ class GO_Slog_Admin_Table extends WP_List_Table
 			$code    = isset( $_REQUEST['code'] ) ? $_REQUEST['code'] : '';
 			// Handle the two cases of a message value seperately
 			$message = isset( $_POST['message'] ) ? $_POST['message'] : '';
-			$message = isset( $_GET['message'] ) ? base64_decode( $_GET['message'] ) : '';
+			$message = ! isset( $_POST['message'] ) && isset( $_GET['message'] ) ? base64_decode( $_GET['message'] ) : '';
 			?>
 			<tr class="search-controls">
-				<form action="tools.php?page=go-slog-show&search=yes<?php echo go_slog_admin()->current_slog_vars; ?>" method="post">
+				<form action="tools.php?page=go-slog-show&search=yes<?php echo go_slog()->admin->current_slog_vars; ?>" method="post">
 					<td></td>
 					<td>
 						<p>
@@ -132,9 +132,9 @@ class GO_Slog_Admin_Table extends WP_List_Table
 	 */
 	public function table_nav_top()
 	{
-		$clear_slog_url   = wp_nonce_url( admin_url( 'admin-ajax.php?action=go-slog-clear&week=' . go_slog_admin()->week ), 'go_slog_clear' );
+		$clear_slog_url   = wp_nonce_url( admin_url( 'admin-ajax.php?action=go-slog-clear&week=' . go_slog()->admin->week ), 'go_slog_clear' );
 		$next_token       = isset( $_GET['next'] ) ? '&next=' . $_GET['next'] : '';
-		$csv_export_url   = wp_nonce_url( 'admin-ajax.php?action=go-slog-csv' . go_slog_admin()->current_slog_vars . '&csv=yes' . $next_token, 'go_slog_csv' );
+		$csv_export_url   = wp_nonce_url( 'admin-ajax.php?action=go-slog-csv' . go_slog()->admin->current_slog_vars . '&csv=yes' . $next_token, 'go_slog_csv' );
 
 		$count = count( $this->items );
 		?>
@@ -142,7 +142,7 @@ class GO_Slog_Admin_Table extends WP_List_Table
 			<div class="alignleft">
 				<p>
 					<select name='go_slog_limit' class='select' id="go_slog_limit">
-						<?php echo go_slog_admin()->build_options( go_slog_admin()->limits, go_slog_admin()->limit ); ?>
+						<?php echo go_slog()->admin->build_options( go_slog()->admin->limits, go_slog()->admin->limit ); ?>
 					</select>
 					Log Items
 				</p>
@@ -176,7 +176,7 @@ class GO_Slog_Admin_Table extends WP_List_Table
 	{
 		if ( '' != Go_Slog::simple_db()->NextToken )
 		{
-			$next_link = 'tools.php?page=go-slog-show' . go_slog_admin()->current_slog_vars . '&next=' . base64_encode( Go_Slog::simple_db()->NextToken );
+			$next_link = 'tools.php?page=go-slog-show' . go_slog()->admin->current_slog_vars . '&next=' . base64_encode( Go_Slog::simple_db()->NextToken );
 			?>
 			<div class="tablenav bottom">
 				<div class="tablenav-pages">
@@ -230,7 +230,7 @@ class GO_Slog_Admin_Table extends WP_List_Table
 	/**
 	 * Compile the log items into a format appropriate for WP_List_Table
 	 */
-	public function compile_posts( $children, $embeds )
+	public function compile_posts()
 	{
 		$compiled = array( array( 'search' => TRUE ) );
 
@@ -243,7 +243,7 @@ class GO_Slog_Admin_Table extends WP_List_Table
 				'slog_host'    => esc_html( $row['host'] ),
 				'slog_code'    => esc_html( $row['code'] ),
 				'slog_message' => esc_html( $row['message'] ),
-				'slog_data'    => esc_html( go_slog_admin()->format_data( $row['data'] ) ),
+				'slog_data'    => esc_html( go_slog()->admin->format_data( $row['data'] ) ),
 			);
 		} // end foreach
 
