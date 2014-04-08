@@ -1,19 +1,15 @@
-Gigaom Slog
-===========
+=== Gigaom Slog ===
+Contributors: methnen, zbtirrell
 
-* Tags: wordpress, amazon simple db, logging
-* Requires at least: 3.6.1
-* Tested up to: 3.6.1
-* License: GPLv2 or later
-* License URI: http://www.gnu.org/licenses/gpl-2.0.html
+Tags: wordpress, amazon simple db, logging
+Requires at least: 3.6.1
+Tested up to: 3.6.1
+License: GPLv2 or later
+License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
-Description
------------
+== Description ==
 
 A way to log occurances to an Amazon Simple DB (requires [Gigaom Simple DB](http://github.com/GigaOM/go-simple-db/)).
-
-Why Does This Exist?
---------------------
 
 We originally created this to allow us to log errors in our code when we weren't able to access the PHP error logs on the server and weren't able to reproduce them locally.  However, since then we've found it useful in a few other cases as well.
 
@@ -24,8 +20,7 @@ Here's our short list (you may be able to think of more):
 	* In our case we had two servers talking to each other and needed a view into how that conversation was going in a consolidated fashion.
 3. When you have a rare error that you need to log but don't want to dig through months of error log files.
 
-Usage Notes
------------
+== Usage ==
 
 1. Set config info by filtering the go_config hook and returning an array of Amazon Simple DB credentials when the second filter attribute is go-slog.
 	* ```array(
@@ -46,7 +41,11 @@ Usage Notes
 	* Slog items can also be exported to CSV.
 	* If you need to clear out your Slog you can do that from the admin panel as well.
 
-Report Issues, Contribute Code, or Fix Stuff
---------------------------------------------
+== Installation ==
 
-https://github.com/GigaOM/go-slog/
+1. Upload `go-simple-db` and `go-slog` to the `/wp-content/plugins/` directory
+2. Activate 'Gigaom Simple DB' and 'Gigaom Slog' through the 'Plugins' menu in WordPress
+
+== Contributing ==
+
+This plugin is developed and [available on GitHub](https://github.com/GigaOM/go-slog/). Contributions and questions are welcome!
