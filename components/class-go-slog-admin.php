@@ -34,7 +34,7 @@ class GO_Slog_Admin extends GO_Slog
 
 	public function admin_menu()
 	{
-		add_submenu_page( 'tools.php', 'View Slog', 'View Slog', 'manage_options', 'go-slog-show', array( $this, 'show_log') );
+		add_submenu_page( 'tools.php', 'View Slog', 'View Slog', 'manage_options', 'go-slog-show', array( $this, 'show_log' ) );
 	} // END admin_menu
 
 	/**
@@ -57,11 +57,12 @@ class GO_Slog_Admin extends GO_Slog
 
 		wp_redirect( admin_url( 'tools.php?page=go-slog-show&slog-cleared=yes' ) );
 		die;
-	} // end clear_logg
+	} // end clear_log
 
 	/**
 	 * Formats data for output
-	 * @param $data array
+	 *
+	 * @param  array $data
 	 * @return string formatted data
 	 */
 	public function format_data( $data )
@@ -82,6 +83,8 @@ class GO_Slog_Admin extends GO_Slog
 
 	/**
 	 * Show the contents of the log
+	 *
+	 * @return Null
 	 */
 	public function show_log()
 	{
@@ -114,7 +117,7 @@ class GO_Slog_Admin extends GO_Slog
 		$go_slog_table->log_query = $log_query;
 		?>
 		<div class="wrap view-slog">
-			<?php screen_icon('tools'); ?>
+			<?php screen_icon( 'tools' ); ?>
 			<h2>
 				View Slog
 				<select name='go_slog_week' class='select' id="go_slog_week">
@@ -141,6 +144,8 @@ class GO_Slog_Admin extends GO_Slog
 
 	/**
 	 * Export current log results to a CSV file
+	 *
+	 * @param ?? $log_query this variable does not appear to be used.
 	 */
 	public function export_csv( $log_query )
 	{
@@ -190,6 +195,8 @@ class GO_Slog_Admin extends GO_Slog
 
 	/**
 	 * Returns relevant log items from the log
+	 *
+	 * @return array log data
 	 */
 	public function log_query()
 	{
@@ -209,6 +216,8 @@ class GO_Slog_Admin extends GO_Slog
 
 	/**
 	 * Return SQL limits for the three search/filter fields
+	 *
+	 * @return string $limits limits for the query
 	 */
 	public function search_limits()
 	{
@@ -235,6 +244,10 @@ class GO_Slog_Admin extends GO_Slog
 
 	/**
 	 * Helper function to build select options
+	 *
+	 * @param array $options of options
+	 * @param string $existing which option to preselect
+	 * @return string $select_options html options
 	 */
 	public function build_options( $options, $existing )
 	{
