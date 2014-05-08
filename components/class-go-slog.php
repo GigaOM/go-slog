@@ -9,6 +9,9 @@ class GO_Slog
 
 	/**
 	 * constructor to setup the simple log
+	 *
+	 * @param ?? $config default to Null,
+	 * @return Null
 	 */
 	public function __construct( $config = NULL )
 	{
@@ -33,6 +36,8 @@ class GO_Slog
 
 	/**
 	 * Admin singleton
+	 *
+	 * @return ?? ???
 	 */
 	public function admin()
 	{
@@ -72,7 +77,7 @@ class GO_Slog
 		$microtime = explode( ' ', microtime() );
 
 		$log_item['log_date'] = array( 'value' => $microtime[1] . substr( $microtime[0], 1 ) );
-		$log_item['host']     = array( 'value' => parse_url( site_url('/'), PHP_URL_HOST ) );
+		$log_item['host']     = array( 'value' => parse_url( site_url( '/' ), PHP_URL_HOST ) );
 		$log_item['code']     = array( 'value' => $code );
 		$log_item['message']  = array( 'value' => $message );
 		$log_item['data']     = array( 'value' => serialize( $data ) );
@@ -140,6 +145,8 @@ class GO_Slog
 
 	/**
 	 * Retrieve (and generate if necessary) domain suffixes for the current and previous weeks
+	 *
+	 * @return array of domain suffixes of the current and previous weeks
 	 */
 	public function get_domain_suffix()
 	{
@@ -157,6 +164,7 @@ class GO_Slog
 
 	/**
 	 * Return an AWS SimpleDB Object, leveraging the go_simple_db() singleton function
+	 *
 	 * @return SimpleDB object
 	 */
 	public function simple_db()
@@ -165,6 +173,12 @@ class GO_Slog
 	} // end simple_db
 }// end class
 
+/**
+* Singleton
+*
+* @global GO_Slog $go_slog
+* @return GO_Slog
+*/
 function go_slog()
 {
 	global $go_slog;

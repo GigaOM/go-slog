@@ -18,6 +18,14 @@ class GO_Slog_Admin_Table extends WP_List_Table
 
 	/**
 	 * Display the various columns for each item
+	 * This is method that is used to render a column when no other specific method exists for that column.
+	 * When WP_List_Tables attempts to render your columns (within single_row_columns()), it first checks
+	 * for a column-specific method. If none exists, it defaults to this method instead. This method accepts
+	 * two arguments, a single $item array and the $column_name (as a slug).
+	 *
+	 * @param array $item This is used to store the raw data you want to display.
+	 * @param string $column_name a slug of a column name
+	 * @return string $items an item index at the $column_name
 	 */
 	public function column_default( $item, $column_name )
 	{
@@ -29,14 +37,19 @@ class GO_Slog_Admin_Table extends WP_List_Table
 
 	/**
 	 * Custom display stuff for the data column
+	 *
+	 * @param array $item this is used to store the slog data you want to display.
+	 * @return String an index of the array $item
 	 */
 	public function column_slog_data( $item )
 	{
 		return '<pre>' . $item['slog_data'] . '</pre>';
-	} // END column_children
+	} //end column_slog_data
 
 	/**
 	 * Return an array of the columns with keys that match the compiled items
+	 *
+	 * @return array $columns an associative array of columns
 	 */
 	public function get_columns()
 	{
@@ -53,6 +66,8 @@ class GO_Slog_Admin_Table extends WP_List_Table
 
 	/**
 	 * Display the individual rows of the table
+	 *
+	 * @param array $item an array of search
 	 */
 	public function single_row( $item )
 	{
@@ -114,6 +129,8 @@ class GO_Slog_Admin_Table extends WP_List_Table
 
 	/**
 	 * Display nav items for the table
+	 *
+	 * @param string $which top to display the nav, else bottom
 	 */
 	public function display_tablenav( $which )
 	{
@@ -193,6 +210,8 @@ class GO_Slog_Admin_Table extends WP_List_Table
 
 	/**
 	 * Initial prep for WP_List_Table
+	 *
+	 * @global wpdb $wpdb
 	 */
 	public function prepare_items()
 	{
@@ -224,11 +243,13 @@ class GO_Slog_Admin_Table extends WP_List_Table
 				<p>Your Slog is empty.</p>
 			</div>
 			<?php
-		} // END if
+		} //end else
 	} // END custom_display
 
 	/**
 	 * Compile the log items into a format appropriate for WP_List_Table
+	 *
+	 * @return array $compile
 	 */
 	public function compile_posts()
 	{
@@ -249,4 +270,5 @@ class GO_Slog_Admin_Table extends WP_List_Table
 
 		return $compiled;
 	} // END compile_posts
-} // END GO_Slog_Admin_Table
+}
+//end GO_Slog_Admin_Table
