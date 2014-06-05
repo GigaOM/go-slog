@@ -14,14 +14,11 @@ class GO_Slog_Admin_Table extends WP_List_Table
 				'ajax'     => FALSE,        //does this table support ajax?
 			)
 		);
-	} // END __construct
+	} //end __construct
 
 	/**
-	 * Display the various columns for each item
-	 * This is method that is used to render a column when no other specific method exists for that column.
-	 * When WP_List_Tables attempts to render your columns (within single_row_columns()), it first checks
-	 * for a column-specific method. If none exists, it defaults to this method instead. This method accepts
-	 * two arguments, a single $item array and the $column_name (as a slug).
+	 * Display the various columns for each item, it first checks
+	 * for a column-specific method. If none exists, it defaults to this method instead.
 	 *
 	 * @param array $item This is used to store the raw data you want to display.
 	 * @param string $column_name a slug of a column name
@@ -32,8 +29,8 @@ class GO_Slog_Admin_Table extends WP_List_Table
 		if ( array_key_exists( $column_name, $this->_column_headers[0] ) )
 		{
 			return $item[ $column_name ];
-		} // END if
-	} // END column_default
+		} //end if
+	} //end column_default
 
 	/**
 	 * Custom display stuff for the data column
@@ -62,7 +59,7 @@ class GO_Slog_Admin_Table extends WP_List_Table
 		);
 
 		return $columns;
-	} // END get_columns
+	} //end get_columns
 
 	/**
 	 * Display the individual rows of the table
@@ -117,15 +114,15 @@ class GO_Slog_Admin_Table extends WP_List_Table
 					<td colspan="5">No log items found.</td>
 				</tr>
 				<?php
-			} // END if
-		} // END if
+			} //end if
+		} //end if
 		else
 		{
 			echo '<tr' . $row_class . '>';
 			echo $this->single_row_columns( $item );
 			echo '</tr>';
-		} // END else
-	} // END single_row
+		} //end else
+	} //end single_row
 
 	/**
 	 * Display nav items for the table
@@ -137,12 +134,12 @@ class GO_Slog_Admin_Table extends WP_List_Table
 		if ( 'top' == $which )
 		{
 			$this->table_nav_top();
-		} // END if
+		}
 		else
 		{
 			$this->table_nav_bottom();
-		} // END else
-	} // END display_tablenav
+		} //end else
+	} //end display_tablenav
 
 	/**
 	 * Display nav items for above the table
@@ -184,7 +181,7 @@ class GO_Slog_Admin_Table extends WP_List_Table
 			<br class="clear" />
 		</div>
 		<?php
-	} // END table_nav_top
+	} //end table_nav_top
 
 	/**
 	 * Display nav items to show below the table.
@@ -205,8 +202,8 @@ class GO_Slog_Admin_Table extends WP_List_Table
 				</div>
 			</div>
 			<?php
-		} // end if
-	} // END table_nav_bottom
+		} //end if
+	} //end table_nav_bottom
 
 	/**
 	 * Initial prep for WP_List_Table
@@ -225,7 +222,7 @@ class GO_Slog_Admin_Table extends WP_List_Table
 		$this->_column_headers = array( $columns, $hidden, $sortable );
 
 		$this->items = $this->compile_posts();
-	} // END prepare_items
+	} //end prepare_items
 
 	/**
 	 * Display the log or an error message that the log is empty
@@ -235,7 +232,7 @@ class GO_Slog_Admin_Table extends WP_List_Table
 		if ( ! empty( $this->items ) )
 		{
 			$this->display();
-		} // END if
+		} //end if
 		else
 		{
 			?>
@@ -244,12 +241,12 @@ class GO_Slog_Admin_Table extends WP_List_Table
 			</div>
 			<?php
 		} //end else
-	} // END custom_display
+	} //end custom_display
 
 	/**
 	 * Compile the log items into a format appropriate for WP_List_Table
 	 *
-	 * @return array $compile
+	 * @return array $compiled
 	 */
 	public function compile_posts()
 	{
@@ -266,9 +263,9 @@ class GO_Slog_Admin_Table extends WP_List_Table
 				'slog_message' => esc_html( $row['message'] ),
 				'slog_data'    => esc_html( go_slog()->admin->format_data( $row['data'] ) ),
 			);
-		} // end foreach
+		} //end foreach
 
 		return $compiled;
-	} // END compile_posts
+	} //end compile_posts
 }
 //end GO_Slog_Admin_Table

@@ -15,7 +15,7 @@ class GO_Slog_Admin extends GO_Slog
 	public $domain_suffix;
 
 	/**
-	 * Constructor to establish a couple ajax endpoints
+	 * Constructor to establish ajax endpoints
 	 */
 	public function __construct()
 	{
@@ -24,18 +24,18 @@ class GO_Slog_Admin extends GO_Slog
 		add_action( 'wp_ajax_go-slog-clear', array( $this, 'clear_log' ) );
 		add_action( 'wp_ajax_go-slog-csv', array( $this, 'export_csv' ) );
 		add_action( 'wp_ajax_go-slog-cron-register', array( $this, 'cron_register_admin_ajax' ) );
-	} // end __construct
+	} //end __construct
 
 	public function admin_init()
 	{
 		wp_enqueue_style( 'go-slog', plugins_url( 'css/go-slog.css', __FILE__ ) );
 		wp_enqueue_script( 'go-slog', plugins_url( 'js/go-slog.js', __FILE__ ), array( 'jquery' ) );
-	} // END admin_init
+	} //end admin_init
 
 	public function admin_menu()
 	{
 		add_submenu_page( 'tools.php', 'View Slog', 'View Slog', 'manage_options', 'go-slog-show', array( $this, 'show_log' ) );
-	} // END admin_menu
+	} //end admin_menu
 
 	/**
 	 * Delete all entries in the log
@@ -51,13 +51,13 @@ class GO_Slog_Admin extends GO_Slog
 		)
 		{
 			wp_die( 'Not cool', 'Unauthorized access', array( 'response' => 401 ) );
-		} // end if
+		} //end if
 
 		$this->simple_db()->deleteDomain( $this->config['aws_sdb_domain'] . $this->domain_suffix[ $_REQUEST['week'] ] );
 
 		wp_redirect( admin_url( 'tools.php?page=go-slog-show&slog-cleared=yes' ) );
 		die;
-	} // end clear_log
+	} //end clear_log
 
 	/**
 	 * Formats data for output
@@ -79,7 +79,7 @@ class GO_Slog_Admin extends GO_Slog
 		} // end else
 
 		return $data;
-	} // end format_data
+	} //end format_data
 
 	/**
 	 * Show the contents of the log
@@ -91,7 +91,7 @@ class GO_Slog_Admin extends GO_Slog
 		if ( ! current_user_can( 'manage_options' ) )
 		{
 			return;
-		} // end if
+		} //end if
 
 		nocache_headers();
 
@@ -140,7 +140,7 @@ class GO_Slog_Admin extends GO_Slog
 			<input type="hidden" name="js_slog_url" value="<?php echo esc_attr( $js_slog_url ); ?>" id="js_slog_url" />
 		</div>
 		<?php
-	} // end show_log
+	} //end show_log
 
 	/**
 	 * Export current log results to a CSV file
@@ -156,7 +156,7 @@ class GO_Slog_Admin extends GO_Slog
 		)
 		{
 			wp_die( 'Not cool', 'Unauthorized access', array( 'response' => 401 ) );
-		} // end if
+		} //end if
 
 		$log_query = $this->log_query();
 
@@ -188,10 +188,10 @@ class GO_Slog_Admin extends GO_Slog
 			);
 
 			fputcsv( $csv, $line );
-		} // end foreach
+		} //end foreach
 
 		die;
-	} // END export_csv
+	} //end export_csv
 
 	/**
 	 * Returns relevant log items from the log
@@ -212,7 +212,7 @@ class GO_Slog_Admin extends GO_Slog
 			. 'ORDER BY log_date DESC LIMIT ' . $this->limit,
 			$next_token
 		);
-	} // END log_query
+	} //end log_query
 
 	/**
 	 * Return SQL limits for the three search/filter fields
@@ -240,7 +240,7 @@ class GO_Slog_Admin extends GO_Slog
 		} // END if
 
 		return $limits;
-	} // END search_limits
+	} //end search_limits
 
 	/**
 	 * Helper function to build select options
@@ -256,10 +256,10 @@ class GO_Slog_Admin extends GO_Slog
 		foreach ( $options as $option => $text )
 		{
 			$select_options .= '<option value="' . esc_attr( $option ) . '"' . selected( $option, $existing, FALSE ) . '>' . $text . "</option>\n";
-		} // END foreach
+		} //end foreach
 
 		return $select_options;
-	} // END build_options
+	} //end build_options
 
 	/**
 	 * Register the cleaning cron and preemptively run clean domains function
@@ -269,11 +269,11 @@ class GO_Slog_Admin extends GO_Slog
 		if ( ! current_user_can( 'manage_options' ) )
 		{
 			wp_die( 'Not cool', 'Unauthorized access', array( 'response' => 401 ) );
-		} // end if
+		} //end if
 
 		$this->clean_domains();
 		$this->cron_register();
 		echo TRUE;
 		die;
-	} // END cron_register_admin_ajax
-}// end GO_Slog_Admin
+	} //end cron_register_admin_ajax
+}//end GO_Slog_Admin
