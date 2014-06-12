@@ -64,7 +64,7 @@ class GO_Slog_Admin_Table extends WP_List_Table
 	/**
 	 * Display the individual rows of the table
 	 *
-	 * @param array $item an array of search
+	 * @param array $item an array of search controls
 	 */
 	public function single_row( $item )
 	{

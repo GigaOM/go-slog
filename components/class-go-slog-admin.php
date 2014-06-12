@@ -62,7 +62,7 @@ class GO_Slog_Admin extends GO_Slog
 	/**
 	 * Formats data for output
 	 *
-	 * @param  array $data
+	 * @param array $data
 	 * @return string formatted data
 	 */
 	public function format_data( $data )
