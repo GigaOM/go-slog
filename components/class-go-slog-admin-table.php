@@ -127,7 +127,7 @@ class GO_Slog_Admin_Table extends WP_List_Table
 	/**
 	 * Display nav items for the table
 	 *
-	 * @param string $which top to display the nav, else bottom
+	 * @param string $which "top" to display the nav, else "bottom"
 	 */
 	public function display_tablenav( $which )
 	{

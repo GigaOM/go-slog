@@ -144,8 +144,6 @@ class GO_Slog_Admin extends GO_Slog
 
 	/**
 	 * Export current log results to a CSV file
-	 *
-	 * @param ?? $log_query this variable does not appear to be used.
 	 */
 	public function export_csv( $log_query )
 	{
