@@ -14,29 +14,39 @@ class GO_Slog_Admin_Table extends WP_List_Table
 				'ajax'     => FALSE,        //does this table support ajax?
 			)
 		);
-	} // END __construct
+	} //end __construct
 
 	/**
-	 * Display the various columns for each item
+	 * Display the various columns for each item, it first checks
+	 * for a column-specific method. If none exists, it defaults to this method instead.
+	 *
+	 * @param array $item This is used to store the raw data you want to display.
+	 * @param string $column_name a slug of a column name
+	 * @return string $items an item index at the $column_name
 	 */
 	public function column_default( $item, $column_name )
 	{
 		if ( array_key_exists( $column_name, $this->_column_headers[0] ) )
 		{
 			return $item[ $column_name ];
-		} // END if
-	} // END column_default
+		} //end if
+	} //end column_default
 
 	/**
 	 * Custom display stuff for the data column
+	 *
+	 * @param array $item this is used to store the slog data you want to display.
+	 * @return String an index of the array $item
 	 */
 	public function column_slog_data( $item )
 	{
 		return '<pre>' . $item['slog_data'] . '</pre>';
-	} // END column_children
+	} //end column_slog_data
 
 	/**
 	 * Return an array of the columns with keys that match the compiled items
+	 *
+	 * @return array $columns an associative array of columns
 	 */
 	public function get_columns()
 	{
@@ -49,10 +59,12 @@ class GO_Slog_Admin_Table extends WP_List_Table
 		);
 
 		return $columns;
-	} // END get_columns
+	} //end get_columns
 
 	/**
 	 * Display the individual rows of the table
+	 *
+	 * @param array $item an array of search controls
 	 */
 	public function single_row( $item )
 	{
@@ -102,30 +114,32 @@ class GO_Slog_Admin_Table extends WP_List_Table
 					<td colspan="5">No log items found.</td>
 				</tr>
 				<?php
-			} // END if
-		} // END if
+			} //end if
+		} //end if
 		else
 		{
 			echo '<tr' . $row_class . '>';
 			echo $this->single_row_columns( $item );
 			echo '</tr>';
-		} // END else
-	} // END single_row
+		} //end else
+	} //end single_row
 
 	/**
 	 * Display nav items for the table
+	 *
+	 * @param string $which "top" to display the nav, else "bottom"
 	 */
 	public function display_tablenav( $which )
 	{
 		if ( 'top' == $which )
 		{
 			$this->table_nav_top();
-		} // END if
+		}
 		else
 		{
 			$this->table_nav_bottom();
-		} // END else
-	} // END display_tablenav
+		} //end else
+	} //end display_tablenav
 
 	/**
 	 * Display nav items for above the table
@@ -167,7 +181,7 @@ class GO_Slog_Admin_Table extends WP_List_Table
 			<br class="clear" />
 		</div>
 		<?php
-	} // END table_nav_top
+	} //end table_nav_top
 
 	/**
 	 * Display nav items to show below the table.
@@ -188,11 +202,13 @@ class GO_Slog_Admin_Table extends WP_List_Table
 				</div>
 			</div>
 			<?php
-		} // end if
-	} // END table_nav_bottom
+		} //end if
+	} //end table_nav_bottom
 
 	/**
 	 * Initial prep for WP_List_Table
+	 *
+	 * @global wpdb $wpdb
 	 */
 	public function prepare_items()
 	{
@@ -206,7 +222,7 @@ class GO_Slog_Admin_Table extends WP_List_Table
 		$this->_column_headers = array( $columns, $hidden, $sortable );
 
 		$this->items = $this->compile_posts();
-	} // END prepare_items
+	} //end prepare_items
 
 	/**
 	 * Display the log or an error message that the log is empty
@@ -216,7 +232,7 @@ class GO_Slog_Admin_Table extends WP_List_Table
 		if ( ! empty( $this->items ) )
 		{
 			$this->display();
-		} // END if
+		} //end if
 		else
 		{
 			?>
@@ -224,11 +240,13 @@ class GO_Slog_Admin_Table extends WP_List_Table
 				<p>Your Slog is empty.</p>
 			</div>
 			<?php
-		} // END if
-	} // END custom_display
+		} //end else
+	} //end custom_display
 
 	/**
 	 * Compile the log items into a format appropriate for WP_List_Table
+	 *
+	 * @return array $compiled
 	 */
 	public function compile_posts()
 	{
@@ -245,8 +263,9 @@ class GO_Slog_Admin_Table extends WP_List_Table
 				'slog_message' => esc_html( $row['message'] ),
 				'slog_data'    => esc_html( go_slog()->admin->format_data( $row['data'] ) ),
 			);
-		} // end foreach
+		} //end foreach
 
 		return $compiled;
-	} // END compile_posts
-} // END GO_Slog_Admin_Table
+	} //end compile_posts
+}
+//end GO_Slog_Admin_Table
