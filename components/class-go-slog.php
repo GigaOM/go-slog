@@ -65,7 +65,7 @@ class GO_Slog
 	}//end config
 
 	/**
-	 * map go_slog calls to Loggly's 'inputs' API
+	 * log to SimpleDB
 	 *
 	 * @param $code string The code you want to log
 	 * @param $message string The message you want to log
@@ -73,20 +73,17 @@ class GO_Slog
 	 */
 	public function log( $code = '', $message = '', $data = '' )
 	{
-		$backtrace = debug_backtrace( DEBUG_BACKTRACE_IGNORE_ARGS );
+		$this->check_domains();
 
-		$log_item = array(
-			'code'    => $code,
-			'message' => $message,
-			'data'    => serialize( $data ), // we flatten our data here so as to not use up loggly's 150 total parsed json key limit. See https://community.loggly.com/customer/portal/questions/6544954-json-not-getting-parsed
-			'from'    => ( isset( $backtrace[2]['file'], $backtrace[2]['line'] ) ) ? $backtrace[2]['file'] . ':' . $backtrace[2]['line'] : NULL,
-		);
+		$microtime = explode( ' ', microtime() );
 
-		$tags = array( 'go-slog' );
-		$tags[] = ( isset( $backtrace[3]['class'] ) ) ? $backtrace[3]['class'] : NULL;
-		$tags[] = ( isset( $backtrace[3]['function'] ) ) ? $backtrace[3]['function'] : NULL;
+		$log_item['log_date'] = array( 'value' => $microtime[1] . substr( $microtime[0], 1 ) );
+		$log_item['host']     = array( 'value' => parse_url( site_url( '/' ), PHP_URL_HOST ) );
+		$log_item['code']     = array( 'value' => $code );
+		$log_item['message']  = array( 'value' => $message );
+		$log_item['data']     = array( 'value' => serialize( $data ) );
 
-		$response = go_loggly()->inputs( $log_item, $tags );
+		$this->simple_db()->putAttributes( $this->config['aws_sdb_domain'] . $this->domain_suffix['curr_week'], uniqid( 'log_item_' ), $log_item );
 	} //end log
 
 	/**
