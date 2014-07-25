@@ -21,7 +21,6 @@ class GO_Slog_Admin extends GO_Slog
 	{
 		add_action( 'admin_init', array( $this, 'admin_init' ) );
 		add_action( 'admin_menu', array( $this, 'admin_menu' ) );
-		add_action( 'wp_ajax_go-slog-clear', array( $this, 'clear_log' ) );
 		add_action( 'wp_ajax_go-slog-csv', array( $this, 'export_csv' ) );
 		add_action( 'wp_ajax_go-slog-cron-register', array( $this, 'cron_register_admin_ajax' ) );
 	} //end __construct
@@ -36,28 +35,6 @@ class GO_Slog_Admin extends GO_Slog
 	{
 		add_submenu_page( 'tools.php', 'View Slog', 'View Slog', 'manage_options', 'go-slog-show', array( $this, 'show_log' ) );
 	} //end admin_menu
-
-	/**
-	 * Delete all entries in the log
-	 */
-	public function clear_log()
-	{
-		if (
-			   ! current_user_can( 'manage_options' )
-			|| ! isset( $_REQUEST['_wpnonce'] )
-			|| ! isset( $_REQUEST['week'] )
-			|| ! isset( $this->domain_suffix[ $_REQUEST['week'] ] )
-			|| ! wp_verify_nonce( $_REQUEST['_wpnonce'], 'go_slog_clear' )
-		)
-		{
-			wp_die( 'Not cool', 'Unauthorized access', array( 'response' => 401 ) );
-		} //end if
-
-		$this->simple_db()->deleteDomain( $this->config['aws_sdb_domain'] . $this->domain_suffix[ $_REQUEST['week'] ] );
-
-		wp_redirect( admin_url( 'tools.php?page=go-slog-show&slog-cleared=yes' ) );
-		die;
-	} //end clear_log
 
 	/**
 	 * Formats data for output
