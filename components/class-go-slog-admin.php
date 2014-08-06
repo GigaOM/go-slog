@@ -3,15 +3,9 @@
 class GO_Slog_Admin extends GO_Slog
 {
 	public $var_dump = FALSE;
-	public $week     = 'curr_week';
-	public $limit    = 100;
-	public $limits   = array(
-		'100'  => '100',
-		'250'  => '250',
-		'500'  => '500',
-		'1000' => '1000',
-	);
-	public $current_slog_vars;
+	public $search_window = '-30s';
+	public $limit    = 50;
+	public $current_loggly_vars;
 	public $domain_suffix;
 
 	/**
@@ -21,42 +15,19 @@ class GO_Slog_Admin extends GO_Slog
 	{
 		add_action( 'admin_init', array( $this, 'admin_init' ) );
 		add_action( 'admin_menu', array( $this, 'admin_menu' ) );
-		add_action( 'wp_ajax_go-slog-csv', array( $this, 'export_csv' ) );
-		add_action( 'wp_ajax_go-slog-cron-register', array( $this, 'cron_register_admin_ajax' ) );
+		add_action( 'wp_ajax_go-loggly-clear', array( $this, 'clear_log' ) );
 	} //end __construct
 
 	public function admin_init()
 	{
-		wp_enqueue_style( 'go-slog', plugins_url( 'css/go-slog.css', __FILE__ ) );
-		wp_enqueue_script( 'go-slog', plugins_url( 'js/go-slog.js', __FILE__ ), array( 'jquery' ) );
+		wp_enqueue_style( 'go-loggly', plugins_url( 'css/go-loggly.css', __FILE__ ) );
+		wp_enqueue_script( 'go-loggly', plugins_url( 'js/go-loggly.js', __FILE__ ), array( 'jquery' ) );
 	} //end admin_init
 
 	public function admin_menu()
 	{
-		add_submenu_page( 'tools.php', 'View Slog', 'View Slog', 'manage_options', 'go-slog-show', array( $this, 'show_log' ) );
+		add_submenu_page( 'tools.php', 'View Loggly', 'View Loggly', 'manage_options', 'go-loggly-show', array( $this, 'show_log' ) );
 	} //end admin_menu
-
-	/**
-	 * Formats data for output
-	 *
-	 * @param array $data
-	 * @return string formatted data
-	 */
-	public function format_data( $data )
-	{
-		if ( $this->var_dump == FALSE )
-		{
-			$data = print_r( unserialize( $data ), TRUE );
-		} // end if
-		else
-		{
-			ob_start();
-			var_dump( unserialize( $data ) );
-			$data = ob_get_clean();
-		} // end else
-
-		return $data;
-	} //end format_data
 
 	/**
 	 * Show the contents of the log
@@ -72,150 +43,94 @@ class GO_Slog_Admin extends GO_Slog
 
 		nocache_headers();
 
-		$this->var_dump = isset( $_GET['var_dump'] ) ? TRUE : FALSE;
-
+		// engage the loggly pager
 		$log_query = $this->log_query();
 
-		$this->current_slog_vars = $this->var_dump ? '&var_dump=yes' : '';
-		$this->current_slog_vars .= 100 != $this->limit ? '&limit=' . $this->limit : '';
-		$this->current_slog_vars .= 'curr_week' != $this->week ? '&week=' . $this->week : '';
-		$this->current_slog_vars .= isset( $_REQUEST['host'] ) && '' != $_REQUEST['host'] ? '&host=' . $_REQUEST['host'] : '';
-		$this->current_slog_vars .= isset( $_REQUEST['code'] ) && '' != $_REQUEST['code'] ? '&code=' . $_REQUEST['code'] : '';
-		// Handle the two cases of a message value seperately
-		$this->current_slog_vars .= isset( $_POST['message'] ) && '' != $_POST['message'] ? '&message=' . base64_encode( $_POST['message'] ) : '';
-		$this->current_slog_vars .= isset( $_GET['message'] ) && '' != $_GET['message'] ? '&message=' . $_GET['message'] : '';
+		// display error message and discontinue table display
+		if ( is_wp_error( $log_query ) )
+		{
+			?>
+			<div id="message" class="updated">
+				<p>
+					<?php echo $log_query->get_error_message(); ?>
+				</p>
+			</div>
+			<?php
+			return;
+		}
 
-		$js_slog_url = 'tools.php?page=go-slog-show' . preg_replace( '#&limit=[0-9]+|&week=(curr_week|prev_week)#', '', $this->current_slog_vars );
+		// valid pager returned, continue reporting
+		$this->current_loggly_vars .= '-30s' != $this->search_window ? '&search_window=' . $this->search_window : '';
+
+		$js_loggly_url = 'tools.php?page=go-loggly-show' . preg_replace( '#&search_window=(-30s|-2m|-5m|-10m|-30m|-1h|-3h|-3h|-6h|-12h|-24h)#', '', $this->current_loggly_vars );
 
 		require_once __DIR__ . '/class-go-slog-admin-table.php';
 
-		$go_slog_table = new GO_Slog_Admin_Table();
+		$go_loggly_table = new GO_Slog_Admin_Table();
 
-		$go_slog_table->log_query = $log_query;
+		// assign the pager to the List_Table
+		$go_loggly_table->log_query = $log_query;
+
 		?>
-		<div class="wrap view-slog">
+		<div class="wrap view-loggly"><!-- as yet not styled -->
 			<?php screen_icon( 'tools' ); ?>
 			<h2>
-				View Slog
-				<select name='go_slog_week' class='select' id="go_slog_week">
-					<?php echo $this->build_options( array( 'curr_week' => 'Current Week', 'prev_week' => 'Previous Week' ), $this->week ); ?>
+				View Loggly from
+				<select name='go_loggly_search_window' class='select' id="go_loggly_search_window">
+					<?php
+						echo $this->build_options(
+							array(
+								'-30s' => 'Last 30 seconds',
+								'-2m' => 'Last 2 minutes',
+								'-5m' => 'Last 5 minutes',
+								'-10m' => 'Last 10 minutes',
+								'-30m' => 'Last 30 minutes',
+								'-1h'  => 'Last hour',
+								'-3h'  => 'Last 3 hours',
+								'-6h'  => 'Last 6 hours',
+								'-12h' => 'Last 12 hours',
+								'-24h' => 'Last day',
+							),
+							$this->search_window
+						);
+					?>
 				</select>
+				to now
 			</h2>
 			<?php
-			if ( isset( $_GET['slog-cleared'] ) )
+			if ( isset( $_GET['loggly-cleared'] ) )
 			{
 				?>
 				<div id="message" class="updated">
-					<p>Slog cleared!</p>
+					<p>Loggly search cleared!</p>
 				</div>
 				<?php
 			}
 
-			$go_slog_table->prepare_items();
-			$go_slog_table->custom_display();
+			$go_loggly_table->prepare_items();
+			$go_loggly_table->display();
 			?>
-			<input type="hidden" name="js_slog_url" value="<?php echo esc_attr( $js_slog_url ); ?>" id="js_slog_url" />
+			<input type="hidden" name="js_loggly_url" value="<?php echo esc_attr( $js_loggly_url ); ?>" id="js_loggly_url" />
 		</div>
 		<?php
 	} //end show_log
 
 	/**
-	 * Export current log results to a CSV file
-	 */
-	public function export_csv( $log_query )
-	{
-		if (
-			   ! current_user_can( 'manage_options' )
-			|| ! isset( $_REQUEST['_wpnonce'] )
-			|| ! wp_verify_nonce( $_REQUEST['_wpnonce'], 'go_slog_csv' )
-		)
-		{
-			wp_die( 'Not cool', 'Unauthorized access', array( 'response' => 401 ) );
-		} //end if
-
-		$log_query = $this->log_query();
-
-		header( 'Content-Type: text/csv' );
-		header( 'Content-Disposition: attachment;filename=' . $this->config['aws_sdb_domain'] . '.csv' );
-
-		$csv = fopen( 'php://output', 'w' );
-
-		$columns = array(
-			'Date',
-			'Host',
-			'Code',
-			'Message',
-			'Data',
-		);
-
-		fputcsv( $csv, $columns );
-
-		foreach ( $log_query as $key => $row )
-		{
-			$microtime = explode( '.', $row['log_date'] );
-
-			$line = array(
-				date( 'Y-m-d H:i:s', $microtime[0] ) . '.' . $microtime[1],
-				$row['host'],
-				$row['code'],
-				$row['message'],
-				$this->format_data( $row['data'] ),
-			);
-
-			fputcsv( $csv, $line );
-		} //end foreach
-
-		die;
-	} //end export_csv
-
-	/**
-	 * Returns relevant log items from the log
+	 * Returns a GO_Slog_Search_Results_Pager containing relevant log entries
 	 *
-	 * @return array log data
+	 * @return GO_Slog_Search_Results_Pager log entry pager
 	 */
 	public function log_query()
 	{
-		$this->check_domains();
+		$this->search_window  = isset( $_GET['search_window'] ) ? $_GET['search_window'] : $this->search_window;
 
-		$this->limit = isset( $_GET['limit'] ) && isset( $this->limits[ $_GET['limit'] ] ) ? $_GET['limit'] : $this->limit;
-		$this->week  = isset( $_GET['week'] ) && isset( $this->domain_suffix[ $_GET['week'] ] ) ? $_GET['week'] : $this->week;
-		$next_token  = isset( $_GET['next'] ) ? base64_decode( $_GET['next'] ) : NULL;
-
-		return $this->simple_db()->select(
-			'SELECT * FROM `' . $this->config['aws_sdb_domain'] . $this->domain_suffix[ $this->week ]
-			. '` WHERE log_date IS NOT NULL ' . $this->search_limits()
-			. 'ORDER BY log_date DESC LIMIT ' . $this->limit,
-			$next_token
+		$search_query_str = sprintf(
+			'tag:go-slog&from=%s&until=now',
+			$this->search_window
 		);
+
+		return go_loggly()->search( $search_query_str );
 	} //end log_query
-
-	/**
-	 * Return SQL limits for the three search/filter fields
-	 *
-	 * @return string $limits limits for the query
-	 */
-	public function search_limits()
-	{
-		$limits = '';
-
-		if ( isset( $_REQUEST['host'] ) && '' != $_REQUEST['host'] )
-		{
-			$limits .= " AND host = '" . esc_sql( $_REQUEST['host'] ) . "'";
-		} // END if
-
-		if ( isset( $_REQUEST['code'] ) && '' != $_REQUEST['code'] )
-		{
-			$limits .= " AND code = '" . esc_sql( $_REQUEST['code'] ) . "'";
-		} // END if
-
-		if ( isset( $_REQUEST['message'] ) && '' != $_REQUEST['message'] )
-		{
-			$message = isset( $_GET['message'] ) ? base64_decode( $_GET['message'] ) : $_POST['message'];
-			$limits .= " AND message LIKE '%" . esc_sql( $message ) . "%'";
-		} // END if
-
-		return $limits;
-	} //end search_limits
 
 	/**
 	 * Helper function to build select options
@@ -235,20 +150,4 @@ class GO_Slog_Admin extends GO_Slog
 
 		return $select_options;
 	} //end build_options
-
-	/**
-	 * Register the cleaning cron and preemptively run clean domains function
-	 */
-	public function cron_register_admin_ajax()
-	{
-		if ( ! current_user_can( 'manage_options' ) )
-		{
-			wp_die( 'Not cool', 'Unauthorized access', array( 'response' => 401 ) );
-		} //end if
-
-		$this->clean_domains();
-		$this->cron_register();
-		echo TRUE;
-		die;
-	} //end cron_register_admin_ajax
 }//end GO_Slog_Admin

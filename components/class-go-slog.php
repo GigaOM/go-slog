@@ -52,9 +52,12 @@ class GO_Slog
 	 * Setup the simple log with connectivity to AWS
 	 *
 	 * @param array $config should contain the following keys:
-	 *     aws_access_key string The Amazon Web Services access key
-	 *     aws_secret_key string The Amazon Web Services secret key
-	 *     aws_sdb_domain string The Amazon Web Services SimpleDB domain
+	 *     customer_token string The loggly customer token
+	 *     inputs_subdomain string The loggly subdomain that makes up the 'inputs' REST URL
+	 *     account string The loggly account name
+	 *     username string The loggly user name - goes into basic http auth header
+	 *     password string The loggly password - goes into basic http auth header
+	 *
 	 */
 	public function config( $config )
 	{
