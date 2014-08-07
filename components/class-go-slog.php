@@ -2,7 +2,6 @@
 
 class GO_Slog
 {
-	public $domain_suffix;
 	public $log_on = TRUE;
 	public $config = array();
 	public $admin;

@@ -6,7 +6,6 @@ class GO_Slog_Admin extends GO_Slog
 	public $search_window = '-30s';
 	public $limit    = 50;
 	public $current_loggly_vars;
-	public $domain_suffix;
 
 	/**
 	 * Constructor to establish ajax endpoints
@@ -20,7 +19,6 @@ class GO_Slog_Admin extends GO_Slog
 
 	public function admin_init()
 	{
-		wp_enqueue_style( 'go-loggly', plugins_url( 'css/go-loggly.css', __FILE__ ) );
 		wp_enqueue_script( 'go-loggly', plugins_url( 'js/go-loggly.js', __FILE__ ), array( 'jquery' ) );
 	} //end admin_init
 
@@ -57,12 +55,12 @@ class GO_Slog_Admin extends GO_Slog
 			</div>
 			<?php
 			return;
-		}
+		}//end if
 
 		// valid pager returned, continue reporting
 		$this->current_loggly_vars .= '-30s' != $this->search_window ? '&search_window=' . $this->search_window : '';
 
-		$js_loggly_url = 'tools.php?page=go-loggly-show' . preg_replace( '#&search_window=(-30s|-2m|-5m|-10m|-30m|-1h|-3h|-3h|-6h|-12h|-24h)#', '', $this->current_loggly_vars );
+		$js_loggly_url = 'tools.php?page=go-loggly-show' . preg_replace( '#&search_window=(-30s|-5m|-10m|-30m|-1h|-3h|-3h|-6h|-12h|-24h|-1w)#', '', $this->current_loggly_vars );
 
 		require_once __DIR__ . '/class-go-slog-admin-table.php';
 
@@ -81,7 +79,6 @@ class GO_Slog_Admin extends GO_Slog
 						echo $this->build_options(
 							array(
 								'-30s' => 'Last 30 seconds',
-								'-2m' => 'Last 2 minutes',
 								'-5m' => 'Last 5 minutes',
 								'-10m' => 'Last 10 minutes',
 								'-30m' => 'Last 30 minutes',
@@ -90,6 +87,7 @@ class GO_Slog_Admin extends GO_Slog
 								'-6h'  => 'Last 6 hours',
 								'-12h' => 'Last 12 hours',
 								'-24h' => 'Last day',
+								'-1w'  => 'Last week',
 							),
 							$this->search_window
 						);

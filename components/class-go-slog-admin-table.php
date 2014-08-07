@@ -97,18 +97,39 @@ class GO_Slog_Admin_Table extends WP_List_Table
 		foreach ( $this->log_query->get_objects() as $key => $value )
 		{
 			$compiled[] = array(
-				'loggly_item_num' => esc_html( $key ),
 				'loggly_id'       => esc_html( $value->id ),
-				'loggly_date'     => esc_html( $value->event->syslog->timestamp ),
-				'loggly_tags'     => esc_html( $value->tags[0] ),
-				'loggly_host'     => esc_html( $value->event->syslog->host ),
-				'loggly_message'  => esc_html( $value->logmsg ),
-				//'loggly_data'    => esc_html( go_loggly()->admin->format_data( $row['data'] ) ),
+				'loggly_date'     => date( 'Y-m-d H:i:s', $value->timestamp / 1000 ), // shave off millis
+				'loggly_class'    => esc_html( $value->tags[2] ),
+				'loggly_method'   => esc_html( $value->tags[1] ),
+				'loggly_location' => esc_html( $value->event->json->from ),
+				'loggly_message'  => esc_html( $value->event->json->message ),
+				'loggly_data'     => esc_html( print_r( unserialize( $value->event->json->data ), TRUE ) ),
 			);
 		} //end foreach
 
 		return $compiled;
 	} //end compile_posts
+
+
+	/**
+	 * Return an array of the columns with keys that match the compiled items
+	 *
+	 * @return array $columns an associative array of columns
+	 */
+	public function get_columns()
+	{
+		$columns = array(
+			'loggly_id'       => 'Loggly ID',
+			'loggly_date'     => 'Date (PST)',
+			'loggly_class'    => 'Class',
+			'loggly_method'   => 'Method',
+			'loggly_location' => 'File',
+			'loggly_message'  => 'Message',
+			'loggly_data'     => 'Data',
+		);
+
+		return $columns;
+	} //end get_columns
 
 	/**
 	 * Display the various columns for each item, it first checks
@@ -125,38 +146,6 @@ class GO_Slog_Admin_Table extends WP_List_Table
 			return $item[ $column_name ];
 		} //end if
 	} //end column_default
-
-	/**
-	 * Custom display stuff for the data column
-	 *
-	 * @param array $item this is used to store the loggly data you want to display.
-	 * @return String an index of the array $item
-	//NOTE: keeping this in here for now; we know we'll require some serialized data handling for our custom log events.
-	public function column_loggly_data( $item )
-	{
-		return '<pre>' . $item['loggly_data'] . '</pre>';
-	} //end column_loggly_data
-	 */
-
-	/**
-	 * Return an array of the columns with keys that match the compiled items
-	 *
-	 * @return array $columns an associative array of columns
-	 */
-	public function get_columns()
-	{
-		$columns = array(
-			'loggly_item_num'=> 'Number',
-			'loggly_id'      => 'ID',
-			'loggly_date'    => 'Date',
-			'loggly_tags'    => 'Tags',
-			'loggly_host'    => 'Host',
-			'loggly_message' => 'Message',
-			//'loggly_data'    => 'Data',
-		);
-
-		return $columns;
-	} //end get_columns
 
 	/**
 	 * Display the individual rows of the table
