@@ -2,7 +2,6 @@
 
 class GO_Slog
 {
-	public $log_on = TRUE;
 	public $config = array();
 	public $admin;
 
@@ -12,14 +11,9 @@ class GO_Slog
 	 * @param ?? $config default to Null,
 	 * @return Null
 	 */
-	public function __construct( $config = NULL )
+	public function __construct()
 	{
-		if ( $this->log_on == FALSE )
-		{
-			return;
-		} //end if
-
-		$this->config( apply_filters( 'go_config', FALSE, 'go-slog' ) );
+		$this->config( apply_filters( 'go_config', FALSE, 'go-loggly' ) );
 
 		if ( is_admin() )
 		{

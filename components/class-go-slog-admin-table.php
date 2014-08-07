@@ -213,11 +213,6 @@ class GO_Slog_Admin_Table extends WP_List_Table
 	 */
 	public function table_nav_bottom()
 	{
-		// get current page from WP_List_Table's pagination url vars, to assist with directing result paging
-		$next_page  = isset( $_GET['paged'] ) ? base64_decode( $_GET['paged'] ) : NULL;
-
-		//if ( $next_page < $this->log_query->page_count() )
-		//{
 			?>
 			<div class="tablenav bottom">
 				<div class="tablenav-pages">
@@ -226,7 +221,6 @@ class GO_Slog_Admin_Table extends WP_List_Table
 				</div>
 			</div>
 			<?php
-		//} //end if
 	} //end table_nav_bottom
 }
 //end GO_Slog_Admin_Table

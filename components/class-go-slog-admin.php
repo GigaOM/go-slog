@@ -14,7 +14,6 @@ class GO_Slog_Admin extends GO_Slog
 	{
 		add_action( 'admin_init', array( $this, 'admin_init' ) );
 		add_action( 'admin_menu', array( $this, 'admin_menu' ) );
-		add_action( 'wp_ajax_go-loggly-clear', array( $this, 'clear_log' ) );
 	} //end __construct
 
 	public function admin_init()
