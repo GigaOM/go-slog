@@ -18,6 +18,7 @@ class GO_Slog_Admin extends GO_Slog
 
 	public function admin_init()
 	{
+		wp_enqueue_style( 'go-slog', plugins_url( 'css/go-slog.css', __FILE__ ) );
 		wp_enqueue_script( 'go-loggly', plugins_url( 'js/go-loggly.js', __FILE__ ), array( 'jquery' ) );
 	} //end admin_init
 

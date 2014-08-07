@@ -32,11 +32,6 @@ class GO_Slog_Admin_Table extends WP_List_Table
 		//How many to display per page?
 		$per_page = 50;
 
-		//How many pages do we have in total? NOTE: pager's page_count 0-indexed
-		//$this->log_query->page_count() == 0 ? $total_pages = 1 : $total_pages = $this->log_query->page_count();
-
-		$current_page = $this->get_pagenum();
-
 		//
 		//Register the pagination
 		//
@@ -97,11 +92,9 @@ class GO_Slog_Admin_Table extends WP_List_Table
 		foreach ( $this->log_query->get_objects() as $key => $value )
 		{
 			$compiled[] = array(
-				'loggly_id'       => esc_html( $value->id ),
+				//'loggly_id'       => esc_html( $value->id ),
 				'loggly_date'     => date( 'Y-m-d H:i:s', $value->timestamp / 1000 ), // shave off millis
-				'loggly_class'    => esc_html( $value->tags[2] ),
-				'loggly_method'   => esc_html( $value->tags[1] ),
-				'loggly_location' => esc_html( $value->event->json->from ),
+				'loggly_class'    => esc_html( $value->tags[2] ) . ':' . esc_html( $value->tags[1] ) . '() - ' . esc_html( $value->event->json->from ),
 				'loggly_message'  => esc_html( $value->event->json->message ),
 				'loggly_data'     => esc_html( print_r( unserialize( $value->event->json->data ), TRUE ) ),
 			);
@@ -119,11 +112,9 @@ class GO_Slog_Admin_Table extends WP_List_Table
 	public function get_columns()
 	{
 		$columns = array(
-			'loggly_id'       => 'Loggly ID',
+			//'loggly_id'       => 'Loggly ID',
 			'loggly_date'     => 'Date (PST)',
 			'loggly_class'    => 'Class',
-			'loggly_method'   => 'Method',
-			'loggly_location' => 'File',
 			'loggly_message'  => 'Message',
 			'loggly_data'     => 'Data',
 		);
@@ -146,6 +137,17 @@ class GO_Slog_Admin_Table extends WP_List_Table
 			return $item[ $column_name ];
 		} //end if
 	} //end column_default
+
+	/**
+	 * Custom display stuff for the data column
+	 *
+	 * @param array $item this is used to store the slog data you want to display.
+	 * @return String an index of the array $item
+	 */
+	public function column_loggly_data( $item )
+	{
+		return '<pre>' . $item['loggly_data'] . '</pre>';
+	} //end column_slog_data
 
 	/**
 	 * Display the individual rows of the table
@@ -181,7 +183,7 @@ class GO_Slog_Admin_Table extends WP_List_Table
 
 	/**
 	 * Display nav items for above the table
-	 * 
+	 *
 	 * @param string $which "top" to display the nav, else "bottom"
 	 */
 	public function table_nav_top( $which )
