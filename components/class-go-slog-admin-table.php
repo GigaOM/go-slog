@@ -171,7 +171,7 @@ class GO_Slog_Admin_Table extends WP_List_Table
 	{
 		if ( 'top' == $which )
 		{
-			$this->table_nav_top();
+			$this->table_nav_top( $which );
 		}
 		else
 		{
@@ -181,8 +181,10 @@ class GO_Slog_Admin_Table extends WP_List_Table
 
 	/**
 	 * Display nav items for above the table
+	 * 
+	 * @param string $which "top" to display the nav, else "bottom"
 	 */
-	public function table_nav_top()
+	public function table_nav_top( $which )
 	{
 			$count = count( $this->items );
 			$total_count = $this->log_query->count();
