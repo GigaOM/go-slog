@@ -70,7 +70,7 @@ class GO_Slog_Admin extends GO_Slog
 		$go_loggly_table->log_query = $log_query;
 
 		?>
-		<div class="wrap view-loggly"><!-- as yet not styled -->
+		<div class="wrap view-loggly">
 			<?php screen_icon( 'tools' ); ?>
 			<h2>
 				View Loggly from

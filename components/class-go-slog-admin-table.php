@@ -83,7 +83,7 @@ class GO_Slog_Admin_Table extends WP_List_Table
 		$compiled = array();
 
 		// get current page from WP_List_Table's pagination url vars, to assist with directing result paging
-		$next_page  = isset( $_GET['paged'] ) ? base64_decode( $_GET['paged'] ) : NULL;
+		$next_page  = isset( $_GET['paged'] ) ? $_GET['paged'] : NULL;
 		if ( $next_page )
 		{
 			$this->log_query->next();
@@ -92,9 +92,8 @@ class GO_Slog_Admin_Table extends WP_List_Table
 		foreach ( $this->log_query->get_objects() as $key => $value )
 		{
 			$compiled[] = array(
-				//'loggly_id'       => esc_html( $value->id ),
-				'loggly_date'     => date( 'Y-m-d H:i:s', $value->timestamp / 1000 ), // shave off millis
-				'loggly_class'    => esc_html( $value->tags[2] ) . ':' . esc_html( $value->tags[1] ) . '() - ' . esc_html( $value->event->json->from ),
+				'loggly_date'     => date( 'M j, H:i:s', $value->timestamp / 1000 ), // shave off millis
+				'loggly_class'    => esc_html( "{$value->tags[2]}:{$value->tags[1]}() - {$value->event->json->from}" ),
 				'loggly_message'  => esc_html( $value->event->json->message ),
 				'loggly_data'     => esc_html( print_r( unserialize( $value->event->json->data ), TRUE ) ),
 			);
@@ -112,7 +111,6 @@ class GO_Slog_Admin_Table extends WP_List_Table
 	public function get_columns()
 	{
 		$columns = array(
-			//'loggly_id'       => 'Loggly ID',
 			'loggly_date'     => 'Date (PST)',
 			'loggly_class'    => 'Class',
 			'loggly_message'  => 'Message',
