@@ -147,7 +147,7 @@ class GO_Slog_Admin_Table extends WP_List_Table
 	public function column_loggly_data( $item )
 	{
 		return '<pre>' . $item['loggly_data'] . '</pre>';
-	} //end column_slog_data
+	} //end column_loggly_data
 
 	/**
 	 * Display the individual rows of the table
