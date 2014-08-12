@@ -9,8 +9,8 @@ class GO_Slog_Admin_Table extends WP_List_Table
 		// Set parent defaults
 		parent::__construct(
 			array(
-				'singular' => 'loggly-item',  //singular name of the listed records
-				'plural'   => 'loggly-items', //plural name of the listed records
+				'singular' => 'slog-item',  //singular name of the listed records
+				'plural'   => 'slog-items', //plural name of the listed records
 				'ajax'     => FALSE,          //does this table support ajax?
 			)
 		);
