@@ -1,8 +1,8 @@
-th#loggly_data.manage-column.column-loggly_data {
+th#slog_data.manage-column.column-slog_data {
     width: 450px;
 }
 
-.view-loggly table th .column-loggly_data pre {
+.view-slog table th .column-slog_data pre {
     margin: 0;
     overflow: scroll;
     word-wrap: normal;

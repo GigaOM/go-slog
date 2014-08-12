@@ -5,7 +5,7 @@ class GO_Slog_Admin extends GO_Slog
 	public $var_dump = FALSE;
 	public $search_window = '-30s';
 	public $limit    = 50;
-	public $current_loggly_vars;
+	public $current_slog_vars;
 
 	/**
 	 * Constructor to establish ajax endpoints
@@ -19,12 +19,12 @@ class GO_Slog_Admin extends GO_Slog
 	public function admin_init()
 	{
 		wp_enqueue_style( 'go-slog', plugins_url( 'css/go-slog.css', __FILE__ ) );
-		wp_enqueue_script( 'go-loggly', plugins_url( 'js/go-loggly.js', __FILE__ ), array( 'jquery' ) );
+		wp_enqueue_script( 'go-slog', plugins_url( 'js/go-slog.js', __FILE__ ), array( 'jquery' ) );
 	} //end admin_init
 
 	public function admin_menu()
 	{
-		add_submenu_page( 'tools.php', 'View Loggly', 'View Loggly', 'manage_options', 'go-loggly-show', array( $this, 'show_log' ) );
+		add_submenu_page( 'tools.php', 'View Slog', 'View Slog', 'manage_options', 'go-slog-show', array( $this, 'show_log' ) );
 	} //end admin_menu
 
 	/**
@@ -41,7 +41,7 @@ class GO_Slog_Admin extends GO_Slog
 
 		nocache_headers();
 
-		// engage the loggly pager
+		// engage the loggly search pager
 		$log_query = $this->log_query();
 
 		// display error message and discontinue table display
@@ -58,23 +58,23 @@ class GO_Slog_Admin extends GO_Slog
 		}//end if
 
 		// valid pager returned, continue reporting
-		$this->current_loggly_vars .= '-30s' != $this->search_window ? '&search_window=' . $this->search_window : '';
+		$this->current_slog_vars .= '-30s' != $this->search_window ? '&search_window=' . $this->search_window : '';
 
-		$js_loggly_url = 'tools.php?page=go-loggly-show' . preg_replace( '#&search_window=(-30s|-5m|-10m|-30m|-1h|-3h|-3h|-6h|-12h|-24h|-1w)#', '', $this->current_loggly_vars );
+		$js_slog_url = 'tools.php?page=go-slog-show' . preg_replace( '#&search_window=(-30s|-5m|-10m|-30m|-1h|-3h|-3h|-6h|-12h|-24h|-1w)#', '', $this->current_slog_vars );
 
 		require_once __DIR__ . '/class-go-slog-admin-table.php';
 
-		$go_loggly_table = new GO_Slog_Admin_Table();
+		$go_slog_table = new GO_Slog_Admin_Table();
 
 		// assign the pager to the List_Table
-		$go_loggly_table->log_query = $log_query;
+		$go_slog_table->log_query = $log_query;
 
 		?>
-		<div class="wrap view-loggly">
+		<div class="wrap view-slog">
 			<?php screen_icon( 'tools' ); ?>
 			<h2>
 				View Loggly from
-				<select name='go_loggly_search_window' class='select' id="go_loggly_search_window">
+				<select name='go_slog_search_window' class='select' id="go_slog_search_window">
 					<?php
 						echo $this->build_options(
 							array(
@@ -96,7 +96,7 @@ class GO_Slog_Admin extends GO_Slog
 				to now
 			</h2>
 			<?php
-			if ( isset( $_GET['loggly-cleared'] ) )
+			if ( isset( $_GET['slog-cleared'] ) )
 			{
 				?>
 				<div id="message" class="updated">
@@ -105,10 +105,10 @@ class GO_Slog_Admin extends GO_Slog
 				<?php
 			}
 
-			$go_loggly_table->prepare_items();
-			$go_loggly_table->display();
+			$go_slog_table->prepare_items();
+			$go_slog_table->display();
 			?>
-			<input type="hidden" name="js_loggly_url" value="<?php echo esc_attr( $js_loggly_url ); ?>" id="js_loggly_url" />
+			<input type="hidden" name="js_slog_url" value="<?php echo esc_attr( $js_slog_url ); ?>" id="js_slog_url" />
 		</div>
 		<?php
 	} //end show_log

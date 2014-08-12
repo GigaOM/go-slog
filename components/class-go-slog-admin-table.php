@@ -92,16 +92,15 @@ class GO_Slog_Admin_Table extends WP_List_Table
 		foreach ( $this->log_query->get_objects() as $key => $value )
 		{
 			$compiled[] = array(
-				'loggly_date'     => date( 'M j, H:i:s', $value->timestamp / 1000 ), // shave off millis
-				'loggly_class'    => esc_html( "{$value->tags[2]}:{$value->tags[1]}() - {$value->event->json->from}" ),
-				'loggly_message'  => esc_html( $value->event->json->message ),
-				'loggly_data'     => esc_html( print_r( unserialize( $value->event->json->data ), TRUE ) ),
+				'slog_date'     => date( 'M j, H:i:s', $value->timestamp / 1000 ), // shave off millis
+				'slog_class'    => esc_html( "{$value->tags[2]}:{$value->tags[1]}() - {$value->event->json->from}" ),
+				'slog_message'  => esc_html( $value->event->json->message ),
+				'slog_data'     => esc_html( print_r( unserialize( $value->event->json->data ), TRUE ) ),
 			);
 		} //end foreach
 
 		return $compiled;
 	} //end compile_posts
-
 
 	/**
 	 * Return an array of the columns with keys that match the compiled items
@@ -111,10 +110,10 @@ class GO_Slog_Admin_Table extends WP_List_Table
 	public function get_columns()
 	{
 		$columns = array(
-			'loggly_date'     => 'Date (PST)',
-			'loggly_class'    => 'Class',
-			'loggly_message'  => 'Message',
-			'loggly_data'     => 'Data',
+			'slog_date'     => 'Date (PST)',
+			'slog_class'    => 'Class',
+			'slog_message'  => 'Message',
+			'slog_data'     => 'Data',
 		);
 
 		return $columns;
@@ -142,10 +141,10 @@ class GO_Slog_Admin_Table extends WP_List_Table
 	 * @param array $item this is used to store the slog data you want to display.
 	 * @return String an index of the array $item
 	 */
-	public function column_loggly_data( $item )
+	public function column_slog_data( $item )
 	{
-		return '<pre>' . $item['loggly_data'] . '</pre>';
-	} //end column_loggly_data
+		return '<pre>' . $item['slog_data'] . '</pre>';
+	} //end column_slog_data
 
 	/**
 	 * Display the individual rows of the table
@@ -197,12 +196,12 @@ class GO_Slog_Admin_Table extends WP_List_Table
 				</div>
 				<div class="alignright">
 					<?php
-					if ( 1 < $count )
-					{
-						?>
+						if ( 1 < $count )
+						{
+					?>
 						<!-- preserve this space for something, possibly also export and clear -->
 					<?php
-					} // END if
+						} // END if
 					?>
 				</div>
 				<br class="clear"/>
