@@ -73,7 +73,7 @@ class GO_Slog_Admin extends GO_Slog
 		<div class="wrap view-slog">
 			<?php screen_icon( 'tools' ); ?>
 			<h2>
-				View Loggly from
+				View Slog From
 				<select name='go_slog_search_window' class='select' id="go_slog_search_window">
 					<?php
 						echo $this->build_options(
@@ -93,14 +93,14 @@ class GO_Slog_Admin extends GO_Slog
 						);
 					?>
 				</select>
-				to now
+				- Now
 			</h2>
 			<?php
 			if ( isset( $_GET['slog-cleared'] ) )
 			{
 				?>
 				<div id="message" class="updated">
-					<p>Loggly search cleared!</p>
+					<p>slog search cleared!</p>
 				</div>
 				<?php
 			}

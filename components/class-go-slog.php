@@ -2,23 +2,16 @@
 
 class GO_Slog
 {
-	public $config = array();
 	public $admin;
 
 	/**
 	 * constructor to setup the simple log
-	 *
-	 * @param ?? $config default to Null,
-	 * @return Null
 	 */
 	public function __construct()
 	{
-		$this->config( apply_filters( 'go_config', FALSE, 'go-loggly' ) );
-
 		if ( is_admin() )
 		{
 			$this->admin();
-			$this->admin->config = $this->config;
 		} //end if
 
 		add_filter( 'go_slog', array( $this, 'log' ), 10, 3 );
@@ -40,22 +33,6 @@ class GO_Slog
 
 		return $this->admin;
 	} //end admin
-
-	/*
-	 * Setup the simple log with connectivity to AWS
-	 *
-	 * @param array $config should contain the following keys:
-	 *     customer_token string The loggly customer token
-	 *     inputs_subdomain string The loggly subdomain that makes up the 'inputs' REST URL
-	 *     account string The loggly account name
-	 *     username string The loggly user name - goes into basic http auth header
-	 *     password string The loggly password - goes into basic http auth header
-	 *
-	 */
-	public function config( $config )
-	{
-		$this->config = $config;
-	}//end config
 
 	/**
 	 * map go_slog calls to Loggly's 'inputs' API
