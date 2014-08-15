@@ -11,7 +11,7 @@ class GO_Slog_Admin_Table extends WP_List_Table
 			array(
 				'singular' => 'slog-item',  //singular name of the listed records
 				'plural'   => 'slog-items', //plural name of the listed records
-				'ajax'     => FALSE,          //does this table support ajax?
+				'ajax'     => FALSE,        //does this table support ajax?
 			)
 		);
 	} //end __construct
@@ -65,7 +65,7 @@ class GO_Slog_Admin_Table extends WP_List_Table
 		} //end if
 		else
 		{
-			?>
+		?>
 			<div id="message" class="error">
 				<p>Your log is empty.</p>
 			</div>

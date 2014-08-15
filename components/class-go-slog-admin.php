@@ -3,7 +3,7 @@
 class GO_Slog_Admin extends GO_Slog
 {
 	public $var_dump = FALSE;
-	public $search_window = '-30s';
+	public $search_interval = '-30s';
 	public $limit    = 50;
 	public $current_slog_vars;
 
@@ -48,7 +48,7 @@ class GO_Slog_Admin extends GO_Slog
 		if ( is_wp_error( $log_query ) )
 		{
 			?>
-			<div id="message" class="updated">
+			<div id="message" class="error">
 				<p>
 					<?php echo $log_query->get_error_message(); ?>
 				</p>
@@ -58,9 +58,9 @@ class GO_Slog_Admin extends GO_Slog
 		}//end if
 
 		// valid pager returned, continue reporting
-		$this->current_slog_vars .= '-30s' != $this->search_window ? '&search_window=' . $this->search_window : '';
+		$this->current_slog_vars .= '-30s' != $this->search_interval ? '&search_interval=' . $this->search_interval : '';
 
-		$js_slog_url = 'tools.php?page=go-slog-show' . preg_replace( '#&search_window=(-30s|-5m|-10m|-30m|-1h|-3h|-3h|-6h|-12h|-24h|-1w)#', '', $this->current_slog_vars );
+		$js_slog_url = 'tools.php?page=go-slog-show' . preg_replace( '#&search_interval=(-30s|-5m|-10m|-30m|-1h|-3h|-3h|-6h|-12h|-24h|-1w)#', '', $this->current_slog_vars );
 
 		require_once __DIR__ . '/class-go-slog-admin-table.php';
 
@@ -74,12 +74,12 @@ class GO_Slog_Admin extends GO_Slog
 			<?php screen_icon( 'tools' ); ?>
 			<h2>
 				View Slog From
-				<select name='go_slog_search_window' class='select' id="go_slog_search_window">
+				<select name='go_slog_search_interval' class='select' id="go_slog_search_interval">
 					<?php
 						echo $this->build_options(
 							array(
 								'-30s' => 'Last 30 seconds',
-								'-5m' => 'Last 5 minutes',
+								'-5m'  => 'Last 5 minutes',
 								'-10m' => 'Last 10 minutes',
 								'-30m' => 'Last 30 minutes',
 								'-1h'  => 'Last hour',
@@ -89,24 +89,15 @@ class GO_Slog_Admin extends GO_Slog
 								'-24h' => 'Last day',
 								'-1w'  => 'Last week',
 							),
-							$this->search_window
+							$this->search_interval
 						);
 					?>
 				</select>
 				- Now
 			</h2>
 			<?php
-			if ( isset( $_GET['slog-cleared'] ) )
-			{
-				?>
-				<div id="message" class="updated">
-					<p>slog search cleared!</p>
-				</div>
-				<?php
-			}
-
-			$go_slog_table->prepare_items();
-			$go_slog_table->display();
+				$go_slog_table->prepare_items();
+				$go_slog_table->custom_display();
 			?>
 			<input type="hidden" name="js_slog_url" value="<?php echo esc_attr( $js_slog_url ); ?>" id="js_slog_url" />
 		</div>
@@ -120,11 +111,11 @@ class GO_Slog_Admin extends GO_Slog
 	 */
 	public function log_query()
 	{
-		$this->search_window  = isset( $_GET['search_window'] ) ? $_GET['search_window'] : $this->search_window;
+		$this->search_interval  = isset( $_GET['search_interval'] ) ? $_GET['search_interval'] : $this->search_interval;
 
 		$search_query_str = sprintf(
 			'tag:go-slog&from=%s&until=now',
-			$this->search_window
+			$this->search_interval
 		);
 
 		return go_loggly()->search( $search_query_str );
