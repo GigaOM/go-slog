@@ -129,7 +129,7 @@ class GO_Slog_Admin extends GO_Slog
 		$terms = isset( $_REQUEST['slog_code'] ) ? $_REQUEST['slog_code'] : '';
 
 		$search_query = array(
-			'q'     => urlencode('tag:go-slog json.code:' . $terms),
+			'q'     => urlencode( 'tag:go-slog json.code:' . $terms ),
 			'from'  => $this->search_interval,
 			'until' => 'now',
 		);
