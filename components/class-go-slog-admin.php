@@ -71,34 +71,48 @@ class GO_Slog_Admin extends GO_Slog
 
 		?>
 		<div class="wrap view-slog">
-			<?php screen_icon( 'tools' ); ?>
-			<h2>
-				View Slog From
-				<select name='go_slog_search_interval' class='select' id="go_slog_search_interval">
-					<?php
-						echo $this->build_options(
-							array(
-								'-30s' => 'Last 30 seconds',
-								'-5m'  => 'Last 5 minutes',
-								'-10m' => 'Last 10 minutes',
-								'-30m' => 'Last 30 minutes',
-								'-1h'  => 'Last hour',
-								'-3h'  => 'Last 3 hours',
-								'-6h'  => 'Last 6 hours',
-								'-12h' => 'Last 12 hours',
-								'-24h' => 'Last day',
-								'-1w'  => 'Last week',
-							),
-							$this->search_interval
-						);
-					?>
-				</select>
-				- Now
-			</h2>
-			<?php
-				$go_slog_table->prepare_items();
-				$go_slog_table->custom_display();
-			?>
+			<div class="slog-report-header">
+				<?php screen_icon( 'tools' ); ?>
+				<h2>
+					View Slog From
+					<select name='go_slog_search_interval' class='select' id="go_slog_search_interval">
+						<?php
+							echo $this->build_options(
+								array(
+									'-30s' => 'Last 30 seconds',
+									'-5m'  => 'Last 5 minutes',
+									'-10m' => 'Last 10 minutes',
+									'-30m' => 'Last 30 minutes',
+									'-1h'  => 'Last hour',
+									'-3h'  => 'Last 3 hours',
+									'-6h'  => 'Last 6 hours',
+									'-12h' => 'Last 12 hours',
+									'-24h' => 'Last day',
+									'-1w'  => 'Last week',
+								),
+								$this->search_interval
+							);
+						?>
+					</select>
+					- Now
+				</h2>
+					<div class="slog_filter_code_action">
+						<?php
+						$slog_code = isset( $_REQUEST['slog_code'] ) ? $_REQUEST['slog_code'] : '';
+						?>
+						<p>
+							<input type="button" class="primary button" id="filter_slog_code" name="filter_slog_code" value="Filter By Slog Code:" >
+							<input type="text" id="slog_code" name="slog_code" value="<?php echo esc_attr( $slog_code ); ?>" >
+						</p>
+					</div>
+
+			</div>
+			<div class="display_slog_results">
+				<?php
+					$go_slog_table->prepare_items();
+					$go_slog_table->custom_display();
+				?>
+			</div>
 			<input type="hidden" name="js_slog_url" value="<?php echo esc_attr( $js_slog_url ); ?>" id="js_slog_url" />
 		</div>
 		<?php
@@ -112,13 +126,15 @@ class GO_Slog_Admin extends GO_Slog
 	public function log_query()
 	{
 		$this->search_interval  = isset( $_GET['search_interval'] ) ? $_GET['search_interval'] : $this->search_interval;
+		$terms = isset( $_REQUEST['slog_code'] ) ? $_REQUEST['slog_code'] : '';
 
-		$search_query_str = sprintf(
-			'tag:go-slog&from=%s&until=now',
-			$this->search_interval
+		$search_query = array(
+			'q'     => urlencode('tag:go-slog json.code:' . $terms),
+			'from'  => $this->search_interval,
+			'until' => 'now',
 		);
 
-		return go_loggly()->search( $search_query_str );
+		return go_loggly()->search( $search_query );
 	} //end log_query
 
 	/**
