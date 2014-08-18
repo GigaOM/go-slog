@@ -72,7 +72,6 @@ class GO_Slog_Admin extends GO_Slog
 		?>
 		<div class="wrap view-slog">
 			<div class="slog-report-header">
-				<?php screen_icon( 'tools' ); ?>
 				<h2>
 					View Slog From
 					<select name='go_slog_search_interval' class='select' id="go_slog_search_interval">
