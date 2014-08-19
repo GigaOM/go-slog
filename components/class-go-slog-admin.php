@@ -3,16 +3,9 @@
 class GO_Slog_Admin extends GO_Slog
 {
 	public $var_dump = FALSE;
-	public $week     = 'curr_week';
-	public $limit    = 100;
-	public $limits   = array(
-		'100'  => '100',
-		'250'  => '250',
-		'500'  => '500',
-		'1000' => '1000',
-	);
+	public $search_interval = '-30s';
+	public $limit    = 50;
 	public $current_slog_vars;
-	public $domain_suffix;
 
 	/**
 	 * Constructor to establish ajax endpoints
@@ -21,9 +14,6 @@ class GO_Slog_Admin extends GO_Slog
 	{
 		add_action( 'admin_init', array( $this, 'admin_init' ) );
 		add_action( 'admin_menu', array( $this, 'admin_menu' ) );
-		add_action( 'wp_ajax_go-slog-clear', array( $this, 'clear_log' ) );
-		add_action( 'wp_ajax_go-slog-csv', array( $this, 'export_csv' ) );
-		add_action( 'wp_ajax_go-slog-cron-register', array( $this, 'cron_register_admin_ajax' ) );
 	} //end __construct
 
 	public function admin_init()
@@ -36,50 +26,6 @@ class GO_Slog_Admin extends GO_Slog
 	{
 		add_submenu_page( 'tools.php', 'View Slog', 'View Slog', 'manage_options', 'go-slog-show', array( $this, 'show_log' ) );
 	} //end admin_menu
-
-	/**
-	 * Delete all entries in the log
-	 */
-	public function clear_log()
-	{
-		if (
-			   ! current_user_can( 'manage_options' )
-			|| ! isset( $_REQUEST['_wpnonce'] )
-			|| ! isset( $_REQUEST['week'] )
-			|| ! isset( $this->domain_suffix[ $_REQUEST['week'] ] )
-			|| ! wp_verify_nonce( $_REQUEST['_wpnonce'], 'go_slog_clear' )
-		)
-		{
-			wp_die( 'Not cool', 'Unauthorized access', array( 'response' => 401 ) );
-		} //end if
-
-		$this->simple_db()->deleteDomain( $this->config['aws_sdb_domain'] . $this->domain_suffix[ $_REQUEST['week'] ] );
-
-		wp_redirect( admin_url( 'tools.php?page=go-slog-show&slog-cleared=yes' ) );
-		die;
-	} //end clear_log
-
-	/**
-	 * Formats data for output
-	 *
-	 * @param array $data
-	 * @return string formatted data
-	 */
-	public function format_data( $data )
-	{
-		if ( $this->var_dump == FALSE )
-		{
-			$data = print_r( unserialize( $data ), TRUE );
-		} // end if
-		else
-		{
-			ob_start();
-			var_dump( unserialize( $data ) );
-			$data = ob_get_clean();
-		} // end else
-
-		return $data;
-	} //end format_data
 
 	/**
 	 * Show the contents of the log
@@ -95,150 +41,100 @@ class GO_Slog_Admin extends GO_Slog
 
 		nocache_headers();
 
-		$this->var_dump = isset( $_GET['var_dump'] ) ? TRUE : FALSE;
-
+		// engage the loggly search pager
 		$log_query = $this->log_query();
 
-		$this->current_slog_vars = $this->var_dump ? '&var_dump=yes' : '';
-		$this->current_slog_vars .= 100 != $this->limit ? '&limit=' . $this->limit : '';
-		$this->current_slog_vars .= 'curr_week' != $this->week ? '&week=' . $this->week : '';
-		$this->current_slog_vars .= isset( $_REQUEST['host'] ) && '' != $_REQUEST['host'] ? '&host=' . $_REQUEST['host'] : '';
-		$this->current_slog_vars .= isset( $_REQUEST['code'] ) && '' != $_REQUEST['code'] ? '&code=' . $_REQUEST['code'] : '';
-		// Handle the two cases of a message value seperately
-		$this->current_slog_vars .= isset( $_POST['message'] ) && '' != $_POST['message'] ? '&message=' . base64_encode( $_POST['message'] ) : '';
-		$this->current_slog_vars .= isset( $_GET['message'] ) && '' != $_GET['message'] ? '&message=' . $_GET['message'] : '';
+		// display error message and discontinue table display
+		if ( is_wp_error( $log_query ) )
+		{
+			?>
+			<div id="message" class="error">
+				<p>
+					<?php echo $log_query->get_error_message(); ?>
+				</p>
+			</div>
+			<?php
+			return;
+		}//end if
 
-		$js_slog_url = 'tools.php?page=go-slog-show' . preg_replace( '#&limit=[0-9]+|&week=(curr_week|prev_week)#', '', $this->current_slog_vars );
+		// valid pager returned, continue reporting
+		$this->current_slog_vars .= '-30s' != $this->search_interval ? '&search_interval=' . $this->search_interval : '';
+
+		$js_slog_url = 'tools.php?page=go-slog-show' . preg_replace( '#&search_interval=(-30s|-5m|-10m|-30m|-1h|-3h|-3h|-6h|-12h|-24h|-1w)#', '', $this->current_slog_vars );
 
 		require_once __DIR__ . '/class-go-slog-admin-table.php';
 
 		$go_slog_table = new GO_Slog_Admin_Table();
 
+		// assign the pager to the List_Table
 		$go_slog_table->log_query = $log_query;
+
 		?>
 		<div class="wrap view-slog">
-			<?php screen_icon( 'tools' ); ?>
-			<h2>
-				View Slog
-				<select name='go_slog_week' class='select' id="go_slog_week">
-					<?php echo $this->build_options( array( 'curr_week' => 'Current Week', 'prev_week' => 'Previous Week' ), $this->week ); ?>
-				</select>
-			</h2>
-			<?php
-			if ( isset( $_GET['slog-cleared'] ) )
-			{
-				?>
-				<div id="message" class="updated">
-					<p>Slog cleared!</p>
-				</div>
-				<?php
-			}
+			<div class="slog-report-header">
+				<h2>
+					View Slog From
+					<select name='go_slog_search_interval' class='select' id="go_slog_search_interval">
+						<?php
+							echo $this->build_options(
+								array(
+									'-30s' => 'Last 30 seconds',
+									'-5m'  => 'Last 5 minutes',
+									'-10m' => 'Last 10 minutes',
+									'-30m' => 'Last 30 minutes',
+									'-1h'  => 'Last hour',
+									'-3h'  => 'Last 3 hours',
+									'-6h'  => 'Last 6 hours',
+									'-12h' => 'Last 12 hours',
+									'-24h' => 'Last day',
+									'-1w'  => 'Last week',
+								),
+								$this->search_interval
+							);
+						?>
+					</select>
+					- Now
+				</h2>
+					<div class="slog_filter_code_action">
+						<?php
+						$slog_code = isset( $_REQUEST['slog_code'] ) ? $_REQUEST['slog_code'] : '';
+						?>
+						<p>
+							<input type="button" class="primary button" id="filter_slog_code" name="filter_slog_code" value="Filter By Slog Code:" >
+							<input type="text" id="slog_code" name="slog_code" value="<?php echo esc_attr( $slog_code ); ?>" >
+						</p>
+					</div>
 
-			$go_slog_table->prepare_items();
-			$go_slog_table->custom_display();
-			?>
+			</div>
+			<div class="display_slog_results">
+				<?php
+					$go_slog_table->prepare_items();
+					$go_slog_table->custom_display();
+				?>
+			</div>
 			<input type="hidden" name="js_slog_url" value="<?php echo esc_attr( $js_slog_url ); ?>" id="js_slog_url" />
 		</div>
 		<?php
 	} //end show_log
 
 	/**
-	 * Export current log results to a CSV file
-	 */
-	public function export_csv( $log_query )
-	{
-		if (
-			   ! current_user_can( 'manage_options' )
-			|| ! isset( $_REQUEST['_wpnonce'] )
-			|| ! wp_verify_nonce( $_REQUEST['_wpnonce'], 'go_slog_csv' )
-		)
-		{
-			wp_die( 'Not cool', 'Unauthorized access', array( 'response' => 401 ) );
-		} //end if
-
-		$log_query = $this->log_query();
-
-		header( 'Content-Type: text/csv' );
-		header( 'Content-Disposition: attachment;filename=' . $this->config['aws_sdb_domain'] . '.csv' );
-
-		$csv = fopen( 'php://output', 'w' );
-
-		$columns = array(
-			'Date',
-			'Host',
-			'Code',
-			'Message',
-			'Data',
-		);
-
-		fputcsv( $csv, $columns );
-
-		foreach ( $log_query as $key => $row )
-		{
-			$microtime = explode( '.', $row['log_date'] );
-
-			$line = array(
-				date( 'Y-m-d H:i:s', $microtime[0] ) . '.' . $microtime[1],
-				$row['host'],
-				$row['code'],
-				$row['message'],
-				$this->format_data( $row['data'] ),
-			);
-
-			fputcsv( $csv, $line );
-		} //end foreach
-
-		die;
-	} //end export_csv
-
-	/**
-	 * Returns relevant log items from the log
+	 * Returns a GO_Slog_Search_Results_Pager containing relevant log entries
 	 *
-	 * @return array log data
+	 * @return GO_Slog_Search_Results_Pager log entry pager
 	 */
 	public function log_query()
 	{
-		$this->check_domains();
+		$this->search_interval  = isset( $_GET['search_interval'] ) ? $_GET['search_interval'] : $this->search_interval;
+		$terms = isset( $_REQUEST['slog_code'] ) ? $_REQUEST['slog_code'] : '';
 
-		$this->limit = isset( $_GET['limit'] ) && isset( $this->limits[ $_GET['limit'] ] ) ? $_GET['limit'] : $this->limit;
-		$this->week  = isset( $_GET['week'] ) && isset( $this->domain_suffix[ $_GET['week'] ] ) ? $_GET['week'] : $this->week;
-		$next_token  = isset( $_GET['next'] ) ? base64_decode( $_GET['next'] ) : NULL;
-
-		return $this->simple_db()->select(
-			'SELECT * FROM `' . $this->config['aws_sdb_domain'] . $this->domain_suffix[ $this->week ]
-			. '` WHERE log_date IS NOT NULL ' . $this->search_limits()
-			. 'ORDER BY log_date DESC LIMIT ' . $this->limit,
-			$next_token
+		$search_query = array(
+			'q'     => urlencode( 'tag:go-slog json.code:' . $terms ),
+			'from'  => $this->search_interval,
+			'until' => 'now',
 		);
+
+		return go_loggly()->search( $search_query );
 	} //end log_query
-
-	/**
-	 * Return SQL limits for the three search/filter fields
-	 *
-	 * @return string $limits limits for the query
-	 */
-	public function search_limits()
-	{
-		$limits = '';
-
-		if ( isset( $_REQUEST['host'] ) && '' != $_REQUEST['host'] )
-		{
-			$limits .= " AND host = '" . esc_sql( $_REQUEST['host'] ) . "'";
-		} // END if
-
-		if ( isset( $_REQUEST['code'] ) && '' != $_REQUEST['code'] )
-		{
-			$limits .= " AND code = '" . esc_sql( $_REQUEST['code'] ) . "'";
-		} // END if
-
-		if ( isset( $_REQUEST['message'] ) && '' != $_REQUEST['message'] )
-		{
-			$message = isset( $_GET['message'] ) ? base64_decode( $_GET['message'] ) : $_POST['message'];
-			$limits .= " AND message LIKE '%" . esc_sql( $message ) . "%'";
-		} // END if
-
-		return $limits;
-	} //end search_limits
 
 	/**
 	 * Helper function to build select options
@@ -258,20 +154,4 @@ class GO_Slog_Admin extends GO_Slog
 
 		return $select_options;
 	} //end build_options
-
-	/**
-	 * Register the cleaning cron and preemptively run clean domains function
-	 */
-	public function cron_register_admin_ajax()
-	{
-		if ( ! current_user_can( 'manage_options' ) )
-		{
-			wp_die( 'Not cool', 'Unauthorized access', array( 'response' => 401 ) );
-		} //end if
-
-		$this->clean_domains();
-		$this->cron_register();
-		echo TRUE;
-		die;
-	} //end cron_register_admin_ajax
 }//end GO_Slog_Admin
