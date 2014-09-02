@@ -50,7 +50,7 @@ class GO_Slog_Admin extends GO_Slog
 			?>
 			<div id="message" class="error">
 				<p>
-					<?php echo $log_query->get_error_message(); ?>
+					<?php echo esc_html( $log_query->get_error_message() ); ?>
 				</p>
 			</div>
 			<?php
