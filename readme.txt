@@ -23,7 +23,7 @@ Here's our short list (you may be able to think of more):
 == Usage ==
 
 1. All necessary config info is already set up in [Gigaom Loggly](http://github.com/GigaOM/go-loggly/).
-	* All log entries are available on both the internal and [Loggly dashboard](https://gigaom.loggly.com) for the duration specified in our contract with them.
+	* All log entries are stored on the Loggly account dashboard at https://{account_name}.loggly.com for the duration specified in their service plan.
 2. Log items: ```apply_filters( 'go_slog', $code, $message, $data );```
 	* $code - Some error code string (e.g. warning, error, error-type-1, etc...)
 	* $message - Some error message (e.g. Attempt to contact the endpoint failed.)
