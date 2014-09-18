@@ -25,17 +25,17 @@ class GO_Slog_Admin_Table extends WP_List_Table
 	 */
 	public function prepare_items()
 	{
-		// Number of elements in your table?
+		// Number of items in the results
 		$total_items = $this->log_query->count(); //return the total number of affected rows
 
-		// How many to display per page?
-		$per_page = 50;
+		// Number of items displayed per page
+		$per_page = isset( $this->request['limit'] ) ? $this->request['limit'] : 50;
 
 		// The pagination links are automatically built according to these parameters
 		$this->set_pagination_args(
 			array(
 				'total_items' => $total_items,
-				'per_page' => $per_page,
+				'per_page'    => $per_page,
 				'total_pages' => ceil( $total_items / $per_page ),
 			)
 		);
@@ -46,10 +46,8 @@ class GO_Slog_Admin_Table extends WP_List_Table
 		$sortable = array();
 		$this->_column_headers = array( $columns, $hidden, $sortable );
 
-		// fetch items
-		$data = $this->compile_posts();
-
-		$this->items = $data;
+		// Compile results into something suitable for the table
+		$this->items = $this->compile_posts();
 	} //end prepare_items
 
 	/**

@@ -14,7 +14,8 @@ class GO_Slog
 			$this->admin();
 		} //end if
 
-		add_filter( 'go_slog', array( $this, 'log' ), 10, 3 );
+		add_action( 'go_slog', array( $this, 'log' ), 10, 3 );
+		add_filter( 'go_slog', array( $this, 'deprecated_log' ), 10, 3 );
 	} //end __construct
 
 	/**
@@ -33,6 +34,15 @@ class GO_Slog
 
 		return $this->admin;
 	} //end admin
+
+	/**
+	 * This is here to continue supporting legacy apply_filters go-slog calls while noting that they are deprecated
+	 */
+	public function deprecated_log( $code = '', $message = '', $data = '' )
+	{
+		_deprecated_function( "apply_filters:go_slog", 'Gigaom Slog v2.1', "do_action:go_slog" );
+		$this->log( $code, $message, $data );
+	} // END function_name
 
 	/**
 	 * map go_slog calls to Loggly's 'inputs' API
