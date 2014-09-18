@@ -29,10 +29,10 @@ Usage Notes
 
 1. All necessary config info is already set up in [Gigaom Loggly](http://github.com/GigaOM/go-loggly/).
     * All log entries are stored on the Loggly account dashboard at https://{account_name}.loggly.com for the duration specified in their service plan.
-2. Log items: ```do_action( 'go_slog', $code, $message, $data );```
+2. Log items: `do_action( 'go_slog', $code, $message, $data );`
     * $code - Some error code string (e.g. warning, error, error-type-1, etc...)
     * $message - Some error message (e.g. Attempt to contact the endpoint failed.)
-    * $data - An array of data that will be helpful in debugging (e.g. ```array( 'post_id' => 131, 'post_title' => 'Test Post' )```)
+    * $data - An array of data that will be helpful in debugging (e.g. `array( 'post_id' => 131, 'post_title' => 'Test Post' )`)
     * Notes: 
 		* Loggly stores 1Mb per log event uploaded via their API, in batches [limited](https://www.loggly.com/docs/http-bulk-endpoint/) to no larger than 5Mb.
 		* Log items will also automatically contain the originating domain, and file (if available class and function will also be included)
