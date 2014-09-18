@@ -64,6 +64,7 @@ class GO_Slog
 			'function' => ( isset( $backtrace[3]['function'] ) ) ? $backtrace[3]['function'] : NULL,
 			'from'     => ( isset( $backtrace[2]['file'], $backtrace[2]['line'] ) ) ? $backtrace[2]['file'] . ':' . $backtrace[2]['line'] : NULL,
 			'domain'   => parse_url( home_url(), PHP_URL_HOST ),
+			'blog'     => get_bloginfo( 'name' ),
 		);
 
 		// We need to remember going forward that tags aren't reliably placed in results (i.e. the tag for class might be returned as tag 1, 2, 3, or whatever)
@@ -72,6 +73,7 @@ class GO_Slog
 		$tags[] = $log_item['class'];
 		$tags[] = $log_item['function'];
 		$tags[] = $log_item['domain'];
+		$tags[] = $log_item['blog'];
 
 		$response = go_loggly()->inputs( $log_item, $tags );
 	} //end log

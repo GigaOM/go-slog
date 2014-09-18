@@ -87,9 +87,12 @@ class GO_Slog_Admin_Table extends WP_List_Table
 
 			$from .= $value->event->json->from;
 
+			$site = isset( $value->event->json->domain ) ? esc_html( $value->event->json->domain ) : '';
+			$site .= isset( $value->event->json->blog ) ? '<br />(' . esc_html( $value->event->json->domain ) . ')' : '';
+
 			$compiled[] = array(
 				'slog_date'    => date( 'M j, H:i:s', $value->timestamp / 1000 ), // shave off milliseconds
-				'slog_domain'  => isset( $value->event->json->domain ) ? esc_html( $value->event->json->domain ) : 'unknown',
+				'slog_site'    => '' == $site ? 'unknown' : $site,
 				'slog_code'    => esc_html( $value->event->json->code ),
 				'slog_from'    => esc_html( $from ),
 				'slog_message' => esc_html( $value->event->json->message ),
@@ -109,7 +112,7 @@ class GO_Slog_Admin_Table extends WP_List_Table
 	{
 		$columns = array(
 			'slog_date'    => 'Date (PST)',
-			'slog_domain'  => 'Domain',
+			'slog_site'    => 'Site',
 			'slog_code'    => 'Code',
 			'slog_message' => 'Message',
 			'slog_from'    => 'From',
