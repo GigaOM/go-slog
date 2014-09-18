@@ -40,9 +40,9 @@ class GO_Slog
 	 */
 	public function deprecated_log( $code = '', $message = '', $data = '' )
 	{
-		_deprecated_function( "apply_filters:go_slog", 'Gigaom Slog v2.1', "do_action:go_slog" );
+		_deprecated_function( 'apply_filters:go_slog', 'Gigaom Slog v2.1', 'do_action:go_slog' );
 		$this->log( $code, $message, $data );
-	} // END function_name
+	} // END deprecated_log
 
 	/**
 	 * map go_slog calls to Loggly's 'inputs' API
