@@ -23,7 +23,7 @@ var go_slog = {};
 
 		// Watch for user hitting Enter/Return in the search field
 		$( '#slog-terms' ).keypress( function( event ) {
-			if ( 13 == event.keyCode) {
+			if ( 13 === event.keyCode) {
 				event.preventDefault();
 				window.location.href = go_slog.get_js_slog_url();
 			}
@@ -43,7 +43,7 @@ var go_slog = {};
 	go_slog.check_column = function() {
 		var $column = $('#slog-column').val();
 
-		if ( 'code' == $column || 'message' == $column ) {
+		if ( 'code' === $column || 'message' === $column ) {
 			$('.slog-search-form em').hide();
 		} else {
 			$('.slog-search-form em').show();
