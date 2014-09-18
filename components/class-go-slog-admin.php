@@ -54,8 +54,6 @@ class GO_Slog_Admin extends GO_Slog
 		// Update our request values
 		$this->parse_request( $_GET );
 
-		apply_filters( 'go_slog', 'go-slog-admin', 'Viewed slog!', $this->request );
-
 		// Start the loggly search pager
 		$log_query = $this->log_query();
 
