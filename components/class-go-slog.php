@@ -56,7 +56,7 @@ class GO_Slog
 			'domain'   => parse_url( home_url(), PHP_URL_HOST ),
 		);
 
-		// We need to remember going forward that tags aren't reliably placed in results (i.e. the tag for class might be returned as term 1, 2, 3, or whatever)
+		// We need to remember going forward that tags aren't reliably placed in results (i.e. the tag for class might be returned as tag 1, 2, 3, or whatever)
 		// That means if we want to display them in ways like we do for the class column we need to store them as seperate $log_item values as well
 		$tags = array( 'go-slog' );
 		$tags[] = $log_item['class'];
