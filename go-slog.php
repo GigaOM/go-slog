@@ -1,7 +1,8 @@
 <?php
 /**
  * Plugin name: Gigaom Simple DB Log
- * Description:	A way to log occurances to an Amazon Simple DB.
+ * Description:	A simple way to log events, exceptions, anyting to Loggly and view them within WordPress.
+ * Version:     2.1
  * Author: 		Gigaom
  * Author URI: 	http://gigaom.com/
  */

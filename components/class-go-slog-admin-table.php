@@ -3,6 +3,8 @@
 class GO_Slog_Admin_Table extends WP_List_Table
 {
 	public $log_query = NULL;
+	public $limit_options = NULL;
+	public $request = array();
 
 	public function __construct()
 	{
@@ -23,24 +25,20 @@ class GO_Slog_Admin_Table extends WP_List_Table
 	 */
 	public function prepare_items()
 	{
-		//
-		//Pagination parameters
-		//
-		//Number of elements in your table?
+		// Number of items in the results
 		$total_items = $this->log_query->count(); //return the total number of affected rows
 
-		//How many to display per page?
-		$per_page = 50;
+		// Number of items displayed per page
+		$per_page = isset( $this->request['limit'] ) ? $this->request['limit'] : 50;
 
-		//
-		//Register the pagination
-		//
-		//The pagination links are automatically built according to those parameters
-		$this->set_pagination_args( array(
-			'total_items' => $total_items,
-			'per_page' => $per_page,
-			'total_pages' => ceil( $total_items / $per_page ),
-		) );
+		// The pagination links are automatically built according to these parameters
+		$this->set_pagination_args(
+			array(
+				'total_items' => $total_items,
+				'per_page'    => $per_page,
+				'total_pages' => ceil( $total_items / $per_page ),
+			)
+		);
 
 		// Set columns
 		$columns  = $this->get_columns();
@@ -48,10 +46,8 @@ class GO_Slog_Admin_Table extends WP_List_Table
 		$sortable = array();
 		$this->_column_headers = array( $columns, $hidden, $sortable );
 
-		// fetch items
-		$data = $this->compile_posts();
-
-		$this->items = $data;
+		// Compile results into something suitable for the table
+		$this->items = $this->compile_posts();
 	} //end prepare_items
 
 	/**
@@ -59,18 +55,7 @@ class GO_Slog_Admin_Table extends WP_List_Table
 	 */
 	public function custom_display()
 	{
-		if ( ! empty( $this->items ) )
-		{
-			$this->display();
-		} //end if
-		else
-		{
-		?>
-			<div id="message" class="error">
-				<p>Your log is empty.</p>
-			</div>
-		<?php
-		} //end else
+		$this->display();
 	} //end custom_display
 
 	/**
@@ -84,6 +69,7 @@ class GO_Slog_Admin_Table extends WP_List_Table
 
 		// get current page from WP_List_Table's pagination url vars, to assist with directing result paging
 		$next_page  = isset( $_GET['paged'] ) ? $_GET['paged'] : NULL;
+
 		if ( $next_page )
 		{
 			$this->log_query->next();
@@ -91,11 +77,26 @@ class GO_Slog_Admin_Table extends WP_List_Table
 
 		foreach ( $this->log_query->get_objects() as $key => $value )
 		{
+			// The from column is actually made up of multiple values that we may or may not have depeneding on the age of the log item
+			$from = '';
+
+			if ( isset( $value->event->json->class ) && $value->event->json->function )
+			{
+				$from = $value->event->json->class . ':' . $value->event->json->function . '() - ';
+			} // END if
+
+			$from .= $value->event->json->from;
+
+			$site = isset( $value->event->json->domain ) ? esc_html( $value->event->json->domain ) : '';
+			$site .= isset( $value->event->json->blog ) ? '<br />(' . esc_html( $value->event->json->domain ) . ')' : '';
+
 			$compiled[] = array(
-				'slog_date'     => date( 'M j, H:i:s', $value->timestamp / 1000 ), // shave off millis
-				'slog_class'    => esc_html( "{$value->tags[2]}:{$value->tags[1]}() - {$value->event->json->from}" ),
-				'slog_message'  => esc_html( $value->event->json->message ),
-				'slog_data'     => esc_html( print_r( unserialize( $value->event->json->data ), TRUE ) ),
+				'slog_date'    => date( 'M j, H:i:s', $value->timestamp / 1000 ), // shave off milliseconds
+				'slog_site'    => '' == $site ? 'unknown' : $site,
+				'slog_code'    => esc_html( $value->event->json->code ),
+				'slog_from'    => esc_html( $from ),
+				'slog_message' => esc_html( $value->event->json->message ),
+				'slog_data'    => esc_html( print_r( unserialize( $value->event->json->data ), TRUE ) ),
 			);
 		} //end foreach
 
@@ -110,14 +111,35 @@ class GO_Slog_Admin_Table extends WP_List_Table
 	public function get_columns()
 	{
 		$columns = array(
-			'slog_date'     => 'Date (PST)',
-			'slog_class'    => 'Class',
-			'slog_message'  => 'Message',
-			'slog_data'     => 'Data',
+			'slog_date'    => 'Date (PST)',
+			'slog_site'    => 'Site',
+			'slog_code'    => 'Code',
+			'slog_message' => 'Message',
+			'slog_from'    => 'From',
+			'slog_data'    => 'Data',
 		);
 
 		return $columns;
 	} //end get_columns
+
+	/**
+	 * Returns a message when there's no items to display
+	 */
+	public function no_items()
+	{
+		if ( isset( $this->request['terms'] ) && '' != $this->request['terms'] )
+		{
+			?>
+			No log items were found that matched these terms.
+			<?php
+		} // END if
+		else
+		{
+			?>
+			This log is empty.
+			<?php
+		} // END else
+	} // END no_items
 
 	/**
 	 * Display the various columns for each item, it first checks
@@ -168,60 +190,16 @@ class GO_Slog_Admin_Table extends WP_List_Table
 	 */
 	public function extra_tablenav( $which )
 	{
-		if ( 'top' == $which )
+		if ( 'top' == $which && $this->limit_options )
 		{
-			$this->table_nav_top( $which );
-		}
-		else
-		{
-			$this->table_nav_bottom();
-		} //end else
-	} //end extra_tablenav
-
-	/**
-	 * Display nav items for above the table
-	 *
-	 * @param string $which "top" to display the nav, else "bottom"
-	 */
-	public function table_nav_top( $which )
-	{
-			$count = count( $this->items );
-			$total_count = $this->log_query->count();
 			?>
-			<div class="tablenav <?php echo esc_attr( $which ); ?>" style="min-height: 43px;">
-				<div class="alignleft">
-					<p>
-						<?php echo $count; ?> Log Items / <?php echo $total_count; ?> Total
-					</p>
-				</div>
-				<div class="alignright">
-					<?php
-						if ( 1 < $count )
-						{
-					?>
-						<!-- preserve this space for something, possibly also export and clear -->
-					<?php
-						} // END if
-					?>
-				</div>
-				<br class="clear"/>
-			</div>
-		<?php
-	} //end table_nav_top
-
-	/**
-	 * Display nav items to show below the table.
-	 */
-	public function table_nav_bottom()
-	{
-			?>
-			<div class="tablenav bottom">
-				<div class="tablenav-pages">
-					<span class="pagination-links">
-					</span>
-				</div>
-			</div>
+			Show
+			<select name="slog_limit" class="select" id="slog-limit">
+				<?php echo wp_kses( $this->limit_options, array( 'option' => array( 'value' => array(), 'selected' => array() ) ) ); ?>
+			</select>
+			items per page.
 			<?php
-	} //end table_nav_bottom
+		}
+	} //end extra_tablenav
 }
 //end GO_Slog_Admin_Table

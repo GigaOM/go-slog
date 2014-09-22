@@ -2,25 +2,35 @@
 
 class GO_Slog_Admin extends GO_Slog
 {
-	public $var_dump = FALSE;
-	public $search_interval = '-30s';
-	public $limit    = 50;
-	public $current_slog_vars;
+	public $current_get_vars;
+	public $request = array(
+		'interval' => '-1h',
+		'limit'    => '50',
+		'terms'    => '',
+		'column'   => 'code',
+	);
 
 	/**
 	 * Constructor to establish ajax endpoints
 	 */
 	public function __construct()
 	{
-		add_action( 'admin_init', array( $this, 'admin_init' ) );
+		add_action( 'admin_enqueue_scripts', array( $this, 'admin_enqueue_scripts' ) );
 		add_action( 'admin_menu', array( $this, 'admin_menu' ) );
 	} //end __construct
 
-	public function admin_init()
+	public function admin_enqueue_scripts( $current_screen )
 	{
-		wp_enqueue_style( 'go-slog', plugins_url( 'css/go-slog.css', __FILE__ ) );
-		wp_enqueue_script( 'go-slog', plugins_url( 'js/go-slog.js', __FILE__ ), array( 'jquery' ) );
-	} //end admin_init
+		if ( 'tools_page_go-slog-show' != $current_screen )
+		{
+			return;
+		} // END if
+
+		$script_config = apply_filters( 'go_config', array( 'version' => bsocial_comments()->version ), 'go-script-version' );
+
+		wp_enqueue_style( 'go-slog', plugins_url( 'css/go-slog.css', __FILE__ ), array(), $script_config['version'] );
+		wp_enqueue_script( 'go-slog', plugins_url( 'js/go-slog.js', __FILE__ ), array( 'jquery' ), $script_config['version'] );
+	} //end admin_enqueue_scripts
 
 	public function admin_menu()
 	{
@@ -41,81 +51,45 @@ class GO_Slog_Admin extends GO_Slog
 
 		nocache_headers();
 
-		// engage the loggly search pager
+		// Update our request values
+		$this->parse_request( $_GET );
+
+		// Start the loggly search pager
 		$log_query = $this->log_query();
-
-		// display error message and discontinue table display
-		if ( is_wp_error( $log_query ) )
-		{
-			?>
-			<div id="message" class="error">
-				<p>
-					<?php echo esc_html( $log_query->get_error_message() ); ?>
-				</p>
-			</div>
-			<?php
-			return;
-		}//end if
-
-		// valid pager returned, continue reporting
-		$this->current_slog_vars .= '-30s' != $this->search_interval ? '&search_interval=' . $this->search_interval : '';
-
-		$js_slog_url = 'tools.php?page=go-slog-show' . preg_replace( '#&search_interval=(-30s|-5m|-10m|-30m|-1h|-3h|-3h|-6h|-12h|-24h|-1w)#', '', $this->current_slog_vars );
 
 		require_once __DIR__ . '/class-go-slog-admin-table.php';
 
 		$go_slog_table = new GO_Slog_Admin_Table();
 
-		// assign the pager to the List_Table
+		// Let the table class know the results and the request
 		$go_slog_table->log_query = $log_query;
+		$go_slog_table->request   = $this->request;
 
-		?>
-		<div class="wrap view-slog">
-			<div class="slog-report-header">
-				<h2>
-					View Slog From
-					<select name='go_slog_search_interval' class='select' id="go_slog_search_interval">
-						<?php
-							echo $this->build_options(
-								array(
-									'-30s' => 'Last 30 seconds',
-									'-5m'  => 'Last 5 minutes',
-									'-10m' => 'Last 10 minutes',
-									'-30m' => 'Last 30 minutes',
-									'-1h'  => 'Last hour',
-									'-3h'  => 'Last 3 hours',
-									'-6h'  => 'Last 6 hours',
-									'-12h' => 'Last 12 hours',
-									'-24h' => 'Last day',
-									'-1w'  => 'Last week',
-								),
-								$this->search_interval
-							);
-						?>
-					</select>
-					- Now
-				</h2>
-					<div class="slog_filter_code_action">
-						<?php
-						$slog_code = isset( $_REQUEST['slog_code'] ) ? $_REQUEST['slog_code'] : '';
-						?>
-						<p>
-							<input type="button" class="primary button" id="filter_slog_code" name="filter_slog_code" value="Filter By Slog Code:" >
-							<input type="text" id="slog_code" name="slog_code" value="<?php echo esc_attr( $slog_code ); ?>" >
-						</p>
-					</div>
+		// Build limit options for use in the table header
+		$go_slog_table->limit_options = $this->build_options(
+			array(
+				'25'  => '25',
+				'50'  => '50',
+				'100' => '100',
+				'200' => '200',
+				'300' => '300',
+			),
+			$this->request['limit']
+		);
 
-			</div>
-			<div class="display_slog_results">
-				<?php
-					$go_slog_table->prepare_items();
-					$go_slog_table->custom_display();
-				?>
-			</div>
-			<input type="hidden" name="js_slog_url" value="<?php echo esc_attr( $js_slog_url ); ?>" id="js_slog_url" />
-		</div>
-		<?php
+		require_once __DIR__ . '/templates/view-slog.php';
 	} //end show_log
+
+	public function parse_request( $request )
+	{
+		foreach ( $this->request as $key => $value )
+		{
+			if ( isset( $request[ $key ] ) )
+			{
+				$this->request[ $key ] = $request[ $key ];
+			} // END if
+		} // END foreach
+	} // END parse_request
 
 	/**
 	 * Returns a GO_Slog_Search_Results_Pager containing relevant log entries
@@ -124,17 +98,42 @@ class GO_Slog_Admin extends GO_Slog
 	 */
 	public function log_query()
 	{
-		$this->search_interval  = isset( $_GET['search_interval'] ) ? $_GET['search_interval'] : $this->search_interval;
-		$terms = isset( $_REQUEST['slog_code'] ) ? $_REQUEST['slog_code'] : '';
+		$query = 'tag:go-slog';
+
+		if ( '' != $this->request['terms'] )
+		{
+			$query .= $this->parse_terms();
+		} // END if
 
 		$search_query = array(
-			'q'     => urlencode( 'tag:go-slog json.code:' . $terms ),
-			'from'  => $this->search_interval,
+			'q'     => urlencode( $query ),
+			'from'  => $this->request['interval'],
 			'until' => 'now',
+			'size'  => $this->request['limit'],
 		);
-
+		//print_r($search_query); exit();
 		return go_loggly()->search( $search_query );
 	} //end log_query
+
+	public function parse_terms()
+	{
+		$query = '';
+
+		switch ( $this->request['column'] )
+		{
+			case 'message':
+				$query .= ' json.message:' . $this->request['terms'];
+				break;
+			case 'code':
+				$query .= ' json.code:' . $this->request['terms'];
+				break;
+			default:
+				$query .= ' tag:"' . $this->request['terms'] . '"';
+				break;
+		} // END switch
+
+		return $query;
+	} // END parse_terms
 
 	/**
 	 * Helper function to build select options

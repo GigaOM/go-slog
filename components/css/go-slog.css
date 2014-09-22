@@ -1,16 +1,33 @@
-th#slog_data.manage-column.column-slog_data {
-    width: 450px;
+.wrap.view-slog th#slog_date {
+	width: 100px;
 }
 
-.view-slog table th .column-slog_data pre {
-    margin: 0;
-    overflow: scroll;
-    word-wrap: normal;
+.wrap.view-slog th#slog_site {
+	width: 137px;
 }
 
-/*
-@TODO: figure out issue where table empty system-generated error div displays within header area
-.slog-report-header {
-    display: flex;
+.wrap.view-slog th#slog_code {
+	width: 200px;
 }
-*/
+
+.wrap.view-slog th#slog_message {
+	width: 300px;
+}
+
+.wrap.view-slog td.slog_data pre {
+	overflow: auto;
+	word-wrap: normal;
+	margin: 0;
+}
+
+.wrap.view-slog div.slog-search-form {
+	float: right;
+}
+
+.wrap.view-slog div.slog-search-form #slog-column {
+	margin-top: -4px;
+}
+
+.wrap.view-slog div.slog-search-form em {
+	float: right;
+}
