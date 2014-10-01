@@ -88,7 +88,7 @@ class GO_Slog_Admin_Table extends WP_List_Table
 			$from .= $value->event->json->from;
 
 			$site = isset( $value->event->json->domain ) ? esc_html( $value->event->json->domain ) : '';
-			$site .= isset( $value->event->json->blog ) ? '<br />(' . esc_html( $value->event->json->domain ) . ')' : '';
+			$site .= isset( $value->event->json->blog ) ? '<br />(' . esc_html( $value->event->json->blog ) . ')' : '';
 
 			$compiled[] = array(
 				'slog_date'    => date( 'M j, H:i:s', $value->timestamp / 1000 ), // shave off milliseconds
