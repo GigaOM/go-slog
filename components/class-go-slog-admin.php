@@ -34,8 +34,30 @@ class GO_Slog_Admin extends GO_Slog
 
 	public function admin_menu()
 	{
+		if ( ! function_exists( 'go_loggly' ) )
+		{
+			add_action( 'admin_notices', array( $this, 'admin_notices' ) );
+		}//end if
+
 		add_submenu_page( 'tools.php', 'View Slog', 'View Slog', 'manage_options', 'go-slog-show', array( $this, 'show_log' ) );
 	} //end admin_menu
+
+	/**
+	 * hooked to the admin_notices action to inject a message if depenencies are not activated
+	 */
+	public function admin_notices()
+	{
+		?>
+		<div class="error">
+			<p>
+				You must <a href="<?php echo esc_url( admin_url( 'plugins.php' ) ); ?>">activate</a> the following plugins before using the <code>go-slog</code> plugin:
+			</p>
+			<ul>
+				<li>go-loggly</li>
+			</ul>
+		</div>
+		<?php
+	}//end admin_notices
 
 	/**
 	 * Show the contents of the log
@@ -111,7 +133,12 @@ class GO_Slog_Admin extends GO_Slog
 			'until' => 'now',
 			'size'  => $this->request['limit'],
 		);
-		//print_r($search_query); exit();
+
+		if ( ! function_exists( 'go_loggly' ) )
+		{
+			return new WP_Error( 'go-slog_search_error', 'go-loggly must be activated to log and view results' );
+		}//end if
+
 		return go_loggly()->search( $search_query );
 	} //end log_query
 

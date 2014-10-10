@@ -66,6 +66,11 @@ class GO_Slog
 		$tags[] = $log_item['domain'];
 		$tags[] = $log_item['blog'];
 
+		if ( ! function_exists( 'go_loggly' ) )
+		{
+			return FALSE;
+		}//end if
+
 		$response = go_loggly()->inputs( $log_item, $tags );
 	} //end log
 }//end class
