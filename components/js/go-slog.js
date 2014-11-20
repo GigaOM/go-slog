@@ -4,13 +4,6 @@ var go_slog = {};
 	'use strict';
 
 	go_slog.init = function() {
-		go_slog.check_column();
-
-		// Handle column changes
-		$(document).on( 'change', '#slog-column', function() {
-			go_slog.check_column();
-		});
-
 		// Handle interval/limit changes
 		$(document).on( 'change', '#slog-interval, #slog-limit', function() {
 			window.location.href = go_slog.get_js_slog_url();
@@ -35,19 +28,10 @@ var go_slog = {};
 		return 'tools.php?page=go-slog-show'
 		+ '&limit=' + $('#slog-limit').val()
 		+ '&interval=' + $('#slog-interval').val()
-		+ '&terms=' + $('#slog-terms').val()
-		+ '&column=' + $('#slog-column').val();
-	};
-
-	// Check #slog-column value and hide/show the em as needed
-	go_slog.check_column = function() {
-		var $column = $('#slog-column').val();
-
-		if ( 'code' === $column || 'message' === $column ) {
-			$('.slog-search-form em').hide();
-		} else {
-			$('.slog-search-form em').show();
-		}
+		+ '&domain=' + $('#slog-domain').val()
+		+ '&code=' + $('#slog-code').val()
+		+ '&message=' + $('#slog-message').val()
+		+ '&function=' + $('#slog-function').val();
 	};
 })(jQuery);
 

@@ -5,6 +5,7 @@ class GO_Slog_Admin_Table extends WP_List_Table
 	public $log_query = NULL;
 	public $limit_options = NULL;
 	public $request = array();
+	public $search_row = TRUE;
 
 	public function __construct()
 	{
@@ -55,7 +56,31 @@ class GO_Slog_Admin_Table extends WP_List_Table
 	 */
 	public function custom_display()
 	{
-		$this->display();
+		$singular = $this->_args['singular'];
+		$data_wp_lists = $singular ? " data-wp-lists='list:$singular'" : '';
+
+		$this->display_tablenav( 'top' );
+		?>
+		<table class="wp-list-table <?php echo implode( ' ', $this->get_table_classes() ); ?>">
+			<thead>
+				<tr>
+					<?php $this->print_column_headers(); ?>
+				</tr>
+				<?php echo $this->search_row(); ?>
+			</thead>
+
+			<tfoot>
+				<tr>
+					<?php $this->print_column_headers( FALSE ); ?>
+				</tr>
+			</tfoot>
+
+			<tbody id="the-list" <?php echo $data_wp_lists; ?>>
+				<?php $this->display_rows_or_placeholder(); ?>
+			</tbody>
+		</table>
+		<?php
+		$this->display_tablenav( 'bottom' );
 	} //end custom_display
 
 	/**
@@ -127,7 +152,7 @@ class GO_Slog_Admin_Table extends WP_List_Table
 	 */
 	public function no_items()
 	{
-		if ( isset( $this->request['terms'] ) && '' != $this->request['terms'] )
+		if ( go_slog()->admin()->is_search() )
 		{
 			?>
 			No log items were found that matched these terms.
@@ -175,13 +200,49 @@ class GO_Slog_Admin_Table extends WP_List_Table
 	 */
 	public function single_row( $item )
 	{
-		static $row_class = '';
-		$row_class = ( '' == $row_class ) ? ' class="alternate"' : '';
-
-		echo '<tr' . $row_class . '>';
-		echo $this->single_row_columns( $item );
-		echo '</tr>';
+		?>
+		<tr class="<?php echo esc_attr( $this->get_row_class() ); ?>">
+			<?php echo $this->single_row_columns( $item ) ?>
+		</tr>
+		<?php
 	} //end single_row
+
+	public function get_row_class()
+	{
+		static $row_count = 0;
+		$row_count++;
+		return 0 == $row_count % 2 ? '' : 'alternate' ;
+	} // END function_name
+
+	public function search_row()
+	{
+		?>
+		<tr class="search-form">
+			<td></td>
+			<td class="exact">
+				<input type="text" name="slog_domain" value="<?php echo esc_attr( $this->request['domain'] ); ?>" id="slog-domain" placeholder="Domain" />
+			</td>
+			<td>
+				<input type="text" name="slog_code" value="<?php echo esc_attr( $this->request['code'] ); ?>" id="slog-code" placeholder="Code" />
+			</td>
+			<td>
+				<input type="text" name="slog_message" value="<?php echo esc_attr( $this->request['message'] ); ?>" id="slog-message" placeholder="Message" />
+			</td>
+			<td class="exact">
+				<input type="text" name="slog_function" value="<?php echo esc_attr( $this->request['function'] ); ?>" id="slog-function" placeholder="Function/Class" />
+			</td>
+			<td>
+				<input type="button" class="primary button" id="slog-search-button" name="slog_search_button" value="Search Log Items" />
+			</td>
+		</tr>
+		<tr class="instructions">
+			<td></td>
+			<td colspan="5">
+				<em>* Results will require an exact match.</em>
+			</td>
+		</tr>
+		<?php
+	} // END search_row
 
 	/**
 	 * Display nav items for the table

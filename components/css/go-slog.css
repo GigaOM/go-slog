@@ -1,3 +1,26 @@
+.wrap.view-slog .slog-items input[type="text"] {
+	width: 100%;
+}
+
+.wrap.view-slog .slog-items .exact input[type="text"] {
+	padding-left: 17px;
+}
+
+.wrap.view-slog .slog-items .exact:before {
+	content: '*';
+	position: absolute;
+	margin-top: 7px;
+	margin-left: 7px;
+}
+
+.wrap.view-slog .slog-items .search-form td {
+	padding-bottom: 0;
+}
+
+.wrap.view-slog .slog-items .instructions td {
+	padding-top: 0;
+}
+
 .wrap.view-slog th#slog_date {
 	width: 100px;
 }
@@ -20,14 +43,10 @@
 	margin: 0;
 }
 
-.wrap.view-slog div.slog-search-form {
-	float: right;
-}
-
 .wrap.view-slog div.slog-search-form #slog-column {
 	margin-top: -4px;
 }
 
-.wrap.view-slog div.slog-search-form em {
+.wrap.view-slog .tablenav-pages {
 	float: right;
 }

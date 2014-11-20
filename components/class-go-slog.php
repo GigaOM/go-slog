@@ -3,7 +3,7 @@
 class GO_Slog
 {
 	public $admin;
-	public $version = '2.1';
+	public $version = '2.2';
 
 	/**
 	 * constructor to setup the simple log

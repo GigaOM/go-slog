@@ -6,8 +6,17 @@ class GO_Slog_Admin extends GO_Slog
 	public $request = array(
 		'interval' => '-1h',
 		'limit'    => '50',
-		'terms'    => '',
-		'column'   => 'code',
+		'domain'   => '',
+		'code'     => '',
+		'message'  => '',
+		'function' => '',
+	);
+	public $terms = array(
+		'code',
+		'message',
+		// These terms are tags so grouping them together so the query looks nicer
+		'domain',
+		'function',
 	);
 
 	/**
@@ -121,11 +130,7 @@ class GO_Slog_Admin extends GO_Slog
 	public function log_query()
 	{
 		$query = 'tag:go-slog';
-
-		if ( '' != $this->request['terms'] )
-		{
-			$query .= $this->parse_terms();
-		} // END if
+		$query .= $this->parse_terms();
 
 		$search_query = array(
 			'q'     => urlencode( $query ),
@@ -145,22 +150,49 @@ class GO_Slog_Admin extends GO_Slog
 	public function parse_terms()
 	{
 		$query = '';
+		$tags = array();
 
-		switch ( $this->request['column'] )
+		foreach ( $this->terms as $term )
 		{
-			case 'message':
-				$query .= ' json.message:' . $this->request['terms'];
-				break;
-			case 'code':
-				$query .= ' json.code:' . $this->request['terms'];
-				break;
-			default:
-				$query .= ' tag:"' . $this->request['terms'] . '"';
-				break;
-		} // END switch
+			if ( ! isset( $this->request[ $term ] ) || '' == $this->request[ $term ] )
+			{
+				continue;
+			} // END if
+
+			if ( 'message' == $term )
+			{
+				$query .= ' json.message:' . $this->request[ $term ];
+			} // END if
+			elseif ( 'code' == $term )
+			{
+				$query .= ' json.code:' . $this->request[ $term ];
+			} // END elseif
+			else
+			{
+				$query .= ' tag:"' . $this->request[ $term ] . '"';
+			} // END else
+		} // END foreach
+
+		if ( ! empty( $tags ) )
+		{
+			$query .= ' tag:"' . implode( ',', $tags ) . '"';
+		} // END if
 
 		return $query;
 	} // END parse_terms
+
+	public function is_search()
+	{
+		foreach ( $this->terms as $term )
+		{
+			if ( isset( $this->request[ $term ] ) && '' != $this->request[ $term ] )
+			{
+				return TRUE;
+			} // END if
+		} // END foreach
+
+		return FALSE;
+	} // END is_search
 
 	/**
 	 * Helper function to build select options
