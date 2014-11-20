@@ -150,7 +150,6 @@ class GO_Slog_Admin extends GO_Slog
 	public function parse_terms()
 	{
 		$query = '';
-		$tags = array();
 
 		foreach ( $this->terms as $term )
 		{
@@ -172,11 +171,6 @@ class GO_Slog_Admin extends GO_Slog
 				$query .= ' tag:"' . $this->request[ $term ] . '"';
 			} // END else
 		} // END foreach
-
-		if ( ! empty( $tags ) )
-		{
-			$query .= ' tag:"' . implode( ',', $tags ) . '"';
-		} // END if
 
 		return $query;
 	} // END parse_terms
