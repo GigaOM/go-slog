@@ -38,7 +38,7 @@ class GO_Slog_Admin extends GO_Slog
 		$script_config = apply_filters( 'go_config', array( 'version' => $this->version ), 'go-script-version' );
 
 		wp_enqueue_style( 'go-slog', plugins_url( 'css/go-slog.css', __FILE__ ), array(), $script_config['version'] );
-		wp_enqueue_script( 'go-slog', plugins_url( 'js/go-slog.js', __FILE__ ), array( 'jquery' ), $script_config['version'] );
+		wp_enqueue_script( 'go-slog', plugins_url( 'js/lib/go-slog.js', __FILE__ ), array( 'jquery' ), $script_config['version'] );
 	} //end admin_enqueue_scripts
 
 	public function admin_menu()
