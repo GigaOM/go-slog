@@ -1,6 +1,6 @@
 <?php
 /**
- * Plugin name: Gigaom Simple DB Log
+ * Plugin name: Gigaom Slog
  * Description:	A simple way to log events, exceptions, anyting to Loggly and view them within WordPress.
  * Version:     2.1
  * Author: 		Gigaom
