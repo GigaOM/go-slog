@@ -15,7 +15,7 @@ var go_slog = {};
 		});
 
 		// Watch for user hitting Enter/Return in the search field
-		$( '#slog-terms' ).keypress( function( event ) {
+		$( '#slog-limit, #slog-interval, #slog-domain, #slog-code, #slog-message, #slog-function' ).keypress( function( event ) {
 			if ( 13 === event.keyCode) {
 				event.preventDefault();
 				window.location.href = go_slog.get_js_slog_url();
